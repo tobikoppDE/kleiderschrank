@@ -894,7 +894,7 @@ function viewCloset() {
     host.append(h('div', { class: 'grid' }, list.map(it => itemTile(it, { onClick: () => openItemDetail(it.id) }))));
   };
   if (S.items.length) page.append(searchBox(S.ui.q, 'Teile durchsuchen', v => { S.ui.q = v; draw(); }));
-  page.append(storageWarning(), backupBanner());
+  page.append(...[storageWarning(), backupBanner()].filter(Boolean));
   if (S.items.length) {
     const hasNone = S.items.some(i => !getCat(i.categoryId));
     const chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Nach Kategorie filtern' });
@@ -954,7 +954,7 @@ function viewOutfits() {
     host.append(h('div', { class: 'grid' }, list.map(o => outfitCard(o, () => openOutfitDetail(o.id)))));
   };
   if (S.outfits.length) page.append(searchBox(S.ui.oq, 'Outfits durchsuchen', v => { S.ui.oq = v; draw(); }));
-  page.append(storageWarning(), backupBanner());
+  page.append(...[storageWarning(), backupBanner()].filter(Boolean));
   const tags = allTags();
   S.ui.tags = S.ui.tags.filter(t => tags.includes(t));
   if (tags.length) {
@@ -972,7 +972,7 @@ function viewOutfits() {
 function viewMore() {
   const page = h('div', { class: 'page' });
   page.append(topBar('Mehr', h('span')));
-  page.append(storageWarning());
+  page.append(...[storageWarning()].filter(Boolean));
   const last = S.settings.lastBackupAt, info = backupInfo();
   const fileInp = h('input', { type: 'file', accept: '.json,application/json', style: 'display:none' });
   fileInp.addEventListener('change', () => { const f = fileInp.files && fileInp.files[0]; fileInp.value = ''; if (f) restoreFromFile(f); });
