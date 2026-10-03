@@ -75,7 +75,7 @@ button{cursor:pointer}
 .tile-img{position:relative;display:grid;place-items:center;aspect-ratio:4/5;background:var(--tile);border-radius:16px;overflow:hidden}
 .tile-img img{display:block}
 .tile-img img.cut{max-width:90%;max-height:90%;object-fit:contain;filter:drop-shadow(0 7px 7px var(--cut-shadow))}
-.tile-img img.photo{width:100%;height:100%;object-fit:cover}
+.tile-img img.photo{width:100%;height:100%;object-fit:contain}
 .tile-name{display:block;margin-top:7px;font-weight:600;font-size:15px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tile-sub{display:block;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tile.sel .tile-img{box-shadow:0 0 0 3px var(--accent)}
@@ -89,7 +89,7 @@ button{cursor:pointer}
 .mosaic div{display:grid;place-items:center;min-height:0;min-width:0}
 .mosaic img{max-width:100%;max-height:100%;object-fit:contain}
 .mosaic img.cut{filter:drop-shadow(0 4px 4px var(--cut-shadow))}
-.mosaic img.photo{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.mosaic img.photo{width:100%;height:100%;object-fit:contain;border-radius:8px}
 .noimg{color:var(--muted);text-align:center;padding:16px;font-size:14px}
 
 .tile.sel .cover{box-shadow:0 0 0 3px var(--accent)}
@@ -146,7 +146,7 @@ button.orow-main:active{background:var(--tile)}
 .packrow[aria-checked="true"] .ptxt b{text-decoration:line-through;opacity:.55}
 .packrow .pimg{flex:none;width:48px;height:60px;border-radius:10px;background:var(--tile);overflow:hidden;display:grid;place-items:center}
 .packrow .pimg img.cut{max-width:90%;max-height:90%;object-fit:contain;filter:drop-shadow(0 3px 3px var(--cut-shadow))}
-.packrow .pimg img.photo{width:100%;height:100%;object-fit:cover}
+.packrow .pimg img.photo{width:100%;height:100%;object-fit:contain}
 .packrow .ptxt{flex:1;min-width:0}
 .packrow .ptxt b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .packrow .ptxt small{display:block;color:var(--muted)}
@@ -217,6 +217,7 @@ button.orow-main:active{background:var(--tile)}
 .input{width:100%;min-height:48px;padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-size:16px}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--tile);border-radius:13px;padding:3px;margin:0 0 14px}
 .seg button{min-height:42px;border:0;border-radius:10px;background:none;font-weight:500}
+.seg.compact button{font-size:14px;padding:0 4px}
 .seg button[aria-pressed="true"]{background:var(--surface);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .range{display:grid;gap:2px;margin:0 0 14px}
 .range input{width:100%;height:44px;accent-color:var(--accent)}
@@ -317,7 +318,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* =====================================================================
    Speicher: IndexedDB mit Fallback auf Arbeitsspeicher
    ===================================================================== */
-const APP_VERSION = '1.9';
+const APP_VERSION = '1.12';
 /* Update-sicherer Speicher. Regeln für zukünftige Änderungen:
    - DB_NAME niemals ändern, sonst sind die bestehenden Daten für die App unsichtbar.
    - Neue Stores/Indizes: DB_VERSION erhöhen und in onupgradeneeded ergänzen (vorhandene Stores bleiben unberührt).
@@ -426,7 +427,7 @@ const SEASONS = ['Frühling', 'Sommer', 'Herbst', 'Winter'];
 const ICONS = ['👔', '👕', '🧶', '👖', '🩳', '🧥', '🥼', '👗', '👚', '🧣', '🧤', '🧢', '🎩', '👒', '👟', '🥾', '👞', '🩴', '🧦', '🕶️', '⌚', '👜', '🎒', '💍'];
 const S = {
   items: [], outfits: [], trips: [], cats: [], settings: {}, ready: false, persisted: undefined,
-  ui: { tab: 'closet', cat: 'all', q: '', tags: [], oq: '', bannerOn: false, busy: false },
+  ui: { tab: 'closet', cat: 'all', q: '', tags: [], oq: '', view: null, bannerOn: false, busy: false },
   storageError: false
 };
 const getItem = id => S.items.find(x => x.id === id);
@@ -682,10 +683,10 @@ function cutCanvasFrom(work, res) {
 async function processPhoto(blob) {
   const cOrig = await blobToCanvas(blob, 1000);
   const work = scaleCanvas(cOrig, 800);
-  const id = work.getContext('2d').getImageData(0, 0, work.width, work.height);
-  return { cOrig, work, prep: prepareCutout(id.data, work.width, work.height) };
+  return { cOrig, work, prep: null };
 }
 function cutFrom(proc, strength) {
+  if (!proc.prep) { const id = proc.work.getContext('2d').getImageData(0, 0, proc.work.width, proc.work.height); proc.prep = prepareCutout(id.data, proc.work.width, proc.work.height); }
   const res = computeCutout(proc.prep, strength);
   return { canvas: cutCanvasFrom(proc.work, res), ok: res.ok };
 }
@@ -1014,7 +1015,7 @@ function viewCloset() {
     clear(host);
     const list = filteredItems();
     if (!S.items.length) {
-      host.append(h('div', { class: 'empty' }, h('h2', null, 'Dein Schrank ist noch leer'), h('p', null, 'Fotografiere dein erstes Kleidungsstück. Der Hintergrund wird automatisch entfernt.'), h('button', { class: 'btn primary', type: 'button', onclick: addItems }, icon('camera', 20), 'Erstes Teil hinzufügen'), h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openBasicEdit({}) }, 'Oder ein Basic anlegen'))));
+      host.append(h('div', { class: 'empty' }, h('h2', null, 'Dein Schrank ist noch leer'), h('p', null, 'Fotografiere dein erstes Kleidungsstück. Das ganze Foto bleibt erhalten, Freistellen kannst du bei jedem Teil selbst einschalten.'), h('button', { class: 'btn primary', type: 'button', onclick: addItems }, icon('camera', 20), 'Erstes Teil hinzufügen'), h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openBasicEdit({}) }, 'Oder ein Basic anlegen'))));
       return;
     }
     if (!list.length) {
@@ -1060,11 +1061,31 @@ function outfitCover(o) {
   if (!its.length) return h('div', { class: 'noimg' }, 'Ohne Foto');
   return h('div', { class: 'mosaic' }, its.map(it => h('div', null, h('img', { src: thumbOf(it), alt: '', class: it.useCutout && it.thumbCut ? 'cut' : 'photo' }))));
 }
-function outfitCard(o, onClick, selected) {
-  return h('button', { class: 'tile' + (selected ? ' sel' : ''), type: 'button', 'aria-pressed': selected == null ? null : String(!!selected), 'aria-label': o.name + (o.tags.length ? ', ' + o.tags.join(', ') : ''), onclick: onClick },
-    h('span', { class: 'cover' }, outfitCover(o), selected ? h('span', { class: 'badge' }, icon('check', 16)) : null),
+function outfitCard(o, onClick, selected, layer) {
+  const own = layer && layer.hasPhoto && layer.thumb;
+  const sub = layer
+    ? layerLabel(o, layer) + (layer.hasPhoto ? '' : ' · kein eigenes Foto')
+    : o.itemIds.length + (o.itemIds.length === 1 ? ' Teil' : ' Teile') + (o.tags.length ? ' · ' + o.tags.join(', ') : '');
+  return h('button', { class: 'tile' + (selected ? ' sel' : ''), type: 'button', 'aria-pressed': selected == null ? null : String(!!selected), 'aria-label': o.name + (layer ? ', ' + layerLabel(o, layer) : '') + (o.tags.length ? ', ' + o.tags.join(', ') : ''), onclick: onClick },
+    h('span', { class: 'cover' }, own ? h('img', { src: layer.thumb, alt: '', class: 'photo', loading: 'lazy' }) : outfitCover(o), selected ? h('span', { class: 'badge' }, icon('check', 16)) : null),
     h('span', { class: 'tile-name' }, o.name),
-    h('span', { class: 'tile-sub' }, o.itemIds.length + (o.itemIds.length === 1 ? ' Teil' : ' Teile') + (o.tags.length ? ' · ' + o.tags.join(', ') : '')));
+    h('span', { class: 'tile-sub' }, sub));
+}
+// Galerie: ohne Zusatzschicht, oder jede Variante einer Zusatzschicht als eigene Kachel
+function galleryEntries() {
+  const view = S.ui.view;
+  const q = S.ui.oq.trim().toLowerCase();
+  const outfitHit = o => !q || o.name.toLowerCase().includes(q) || o.tags.some(t => t.toLowerCase().includes(q));
+  const layerHit = (o, l) => !!q && layerLabel(o, l).toLowerCase().includes(q);
+  const entries = []; let hidden = 0;
+  S.outfits.filter(o => S.ui.tags.every(t => o.tags.includes(t))).forEach(o => {
+    const oh = outfitHit(o), anyHit = oh || (o.layers || []).some(l => layerHit(o, l));
+    if (view === null) { if (anyHit) entries.push({ o, layer: null }); return; }
+    const ls = (o.layers || []).filter(l => l.tier === view);
+    if (!ls.length) { if (anyHit) hidden++; return; }
+    ls.forEach(l => { if (oh || layerHit(o, l)) entries.push({ o, layer: l }); });
+  });
+  return { entries, hidden };
 }
 function viewOutfits() {
   const page = h('div', { class: 'page' });
@@ -1072,19 +1093,27 @@ function viewOutfits() {
   const host = h('div');
   const draw = () => {
     clear(host);
-    const list = filteredOutfits();
+    const { entries, hidden } = galleryEntries();
     if (!S.outfits.length) {
       host.append(h('div', { class: 'empty' }, h('h2', null, 'Noch keine Outfits'), h('p', null, 'Fotografiere dich im Outfit und wähle die Teile aus, die du trägst.'), h('button', { class: 'btn primary', type: 'button', onclick: () => openOutfitEdit({}) }, icon('camera', 20), 'Erstes Outfit anlegen')));
       return;
     }
-    if (!list.length) {
+    if (!entries.length) {
+      if (S.ui.view !== null && hidden && !S.ui.oq.trim() && !S.ui.tags.length) {
+        host.append(h('div', { class: 'empty' }, h('h2', null, 'Keine Varianten'), h('p', null, 'Kein Outfit hat eine Variante für Zusatzschicht ' + (S.ui.view + 1) + '.'), h('button', { class: 'btn', type: 'button', onclick: () => { S.ui.view = null; renderRoot(); } }, 'Zurück zu „Ohne“')));
+        return;
+      }
       host.append(h('div', { class: 'empty' }, h('h2', null, 'Nichts gefunden'), h('p', null, 'Kein Outfit passt zu Suche und Tags.'), h('button', { class: 'btn', type: 'button', onclick: () => { S.ui.oq = ''; S.ui.tags = []; renderRoot(); } }, 'Filter zurücksetzen')));
       return;
     }
-    host.append(h('div', { class: 'grid' }, list.map(o => outfitCard(o, () => openOutfitDetail(o.id)))));
+    host.append(h('div', { class: 'grid' }, entries.map(e => outfitCard(e.o, () => openOutfitDetail(e.o.id, e.layer ? { tier: e.layer.tier, id: e.layer.id } : null), undefined, e.layer))));
+    if (hidden) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:16px', role: 'status' }, hidden + (hidden === 1 ? ' Outfit' : ' Outfits') + ' ohne Zusatzschicht ' + (S.ui.view + 1) + ' ausgeblendet'));
   };
   if (S.outfits.length) page.append(searchBox(S.ui.oq, 'Outfits durchsuchen', v => { S.ui.oq = v; draw(); }));
   page.append(...[storageWarning(), backupBanner()].filter(Boolean));
+  if (!S.outfits.some(o => (o.layers || []).length)) S.ui.view = null;
+  else page.append(h('div', { class: 'seg compact', role: 'group', 'aria-label': 'Zusatzschicht in der Galerie zeigen' },
+    [['Ohne', null], ['Zusatzschicht 1', 0], ['Zusatzschicht 2', 1]].map(([lab, v]) => h('button', { type: 'button', 'aria-pressed': String(S.ui.view === v), onclick: () => { S.ui.view = v; renderRoot(); } }, lab))));
   const tags = allTags();
   S.ui.tags = S.ui.tags.filter(t => tags.includes(t));
   if (tags.length) {
@@ -1163,8 +1192,9 @@ function openItemDetail(id) {
     ctl.render = draw; draw();
   }, { label: 'Teil' });
 }
-function openOutfitDetail(id) {
+function openOutfitDetail(id, pre) {
   let sel = [null, null];
+  if (pre && (pre.tier === 0 || pre.tier === 1)) sel[pre.tier] = pre.id;
   openSheet((root, ctl) => {
     const draw = () => {
       const o = getOutfit(id);
@@ -1232,7 +1262,7 @@ function openItemEdit(opts) {
   const draft = {
     name: existing ? existing.name : '',
     categoryId: existing ? existing.categoryId : (getCat(S.settings.lastCat) ? S.settings.lastCat : (S.cats[0] ? S.cats[0].id : null)),
-    mode: existing ? (existing.useCutout ? 'cut' : 'orig') : 'cut',
+    mode: existing ? (existing.useCutout ? 'cut' : 'orig') : 'orig',
     strength: existing ? existing.strength : 50,
     newPhoto: !existing
   };
@@ -1268,11 +1298,19 @@ function openItemEdit(opts) {
       const x = canvas.getContext('2d'); x.clearRect(0, 0, canvas.width, canvas.height); x.drawImage(src, 0, 0);
       canvas.className = useCut ? 'cut' : 'full';
     };
+    // Freistellen ist eine bewusste Wahl pro Teil; gerechnet wird erst, wenn du es einschaltest
+    const chooseCut = () => {
+      if (!proc) return;
+      if (!cutRes) cutRes = cutFrom(proc, draft.strength);
+      if (!cutRes.canvas) { draft.mode = 'orig'; notice = 'Bei diesem Foto ließ sich der Hintergrund nicht entfernen. Das Original bleibt.'; }
+      else { draft.mode = 'cut'; notice = cutRes.ok ? '' : 'Der Hintergrund ließ sich bei diesem Foto nicht sicher entfernen. Mit dem Regler kannst du nachbessern.'; }
+      drawControls(); drawPreview();
+    };
     const drawControls = () => {
       clear(seg); clear(rangeBox);
       seg.append(
-        h('button', { type: 'button', 'aria-pressed': String(draft.mode === 'cut'), onclick: () => { draft.mode = 'cut'; drawControls(); drawPreview(); } }, 'Freigestellt'),
-        h('button', { type: 'button', 'aria-pressed': String(draft.mode === 'orig'), onclick: () => { draft.mode = 'orig'; drawControls(); drawPreview(); } }, 'Original'));
+        h('button', { type: 'button', 'aria-pressed': String(draft.mode === 'orig'), onclick: () => { draft.mode = 'orig'; notice = ''; drawControls(); drawPreview(); } }, 'Original'),
+        h('button', { type: 'button', 'aria-pressed': String(draft.mode === 'cut'), onclick: () => chooseCut() }, 'Freigestellt'));
       if (draft.mode === 'cut') {
         const inp = h('input', { type: 'range', min: '0', max: '100', step: '1', value: String(draft.strength), 'aria-label': 'Freistell-Stärke' });
         let t = 0;
@@ -1281,7 +1319,7 @@ function openItemEdit(opts) {
           h('div', { class: 'ends' }, h('span', null, 'weniger entfernen'), h('span', null, 'mehr entfernen')),
           h('p', { class: 'meta', style: 'font-size:14px;margin:4px 0 0' }, 'Bleiben Reste vom Hintergrund stehen, schiebe den Regler nach rechts. Fehlen Teile des Kleidungsstücks, nach links.'));
       }
-      if (notice) { noticeEl.hidden = false; noticeEl.textContent = notice; } else noticeEl.hidden = true;
+      if (notice) { noticeEl.hidden = false; noticeEl.textContent = notice; } else { noticeEl.hidden = true; noticeEl.textContent = ''; }
     };
     const drawCats = () => {
       clear(catBox);
@@ -1292,10 +1330,10 @@ function openItemEdit(opts) {
       ready = false; updateSave(); waitEl.hidden = false; waitEl.textContent = 'Foto wird vorbereitet …';
       try {
         proc = await processPhoto(blob);
-        cutRes = cutFrom(proc, draft.strength);
-        if (draft.newPhoto) {
-          if (!cutRes.canvas || !cutRes.ok) { draft.mode = 'orig'; notice = 'Der Hintergrund ließ sich bei diesem Foto nicht sicher entfernen. Das Original wird gezeigt. Mit „Freigestellt“ und dem Regler kannst du es selbst versuchen.'; }
-          else { draft.mode = 'cut'; notice = ''; }
+        cutRes = null; notice = '';
+        if (draft.mode === 'cut') {
+          cutRes = cutFrom(proc, draft.strength);
+          if (draft.newPhoto && (!cutRes.canvas || !cutRes.ok)) { draft.mode = 'orig'; notice = 'Beim neuen Foto ließ sich der Hintergrund nicht sicher entfernen. Das Original wird gezeigt. Mit „Freigestellt“ und dem Regler kannst du es selbst versuchen.'; }
         }
         drawControls(); drawPreview(); waitEl.hidden = true; ready = true; updateSave();
       } catch (e) {
@@ -1310,10 +1348,10 @@ function openItemEdit(opts) {
         const id = existing ? existing.id : uid();
         const cat = getCat(draft.categoryId);
         const name = draft.name.trim() || (cat ? cat.name : 'Teil');
-        const hasCut = !!(cutRes && cutRes.canvas);
+        const hasCut = !!(draft.mode === 'cut' && cutRes && cutRes.canvas);
         const rec = Object.assign({}, existing || {}, {
           id, name, categoryId: draft.categoryId, createdAt: existing ? existing.createdAt : Date.now(),
-          useCutout: draft.mode === 'cut' && hasCut, strength: draft.strength, hasCut,
+          useCutout: hasCut, strength: draft.strength, hasCut,
           thumbOrig: scaleCanvas(proc.cOrig, 360).toDataURL('image/jpeg', .82),
           thumbCut: hasCut ? scaleCanvas(cutRes.canvas, 360).toDataURL('image/png') : null
         });
@@ -2000,7 +2038,8 @@ function openTripDetail(id) {
 }
 
 function openTripDayPicker(o) {
-  let q = '', tags = [];
+  let q = '', tags = [], onlyUsed = false;
+  const usedSet = new Set((o.usedIds || []).filter(id => getOutfit(id)));
   const sel = o.selected.filter(id => getOutfit(id));
   openSheet((root, ctl) => {
     const host = h('div'), chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Nach Tags filtern' }), counter = h('span', { 'aria-live': 'polite' });
@@ -2008,7 +2047,7 @@ function openTripDayPicker(o) {
     const draw = () => {
       clear(host);
       const ql = q.trim().toLowerCase();
-      const list = S.outfits.filter(x => tags.every(t => x.tags.includes(t)) && (!ql || x.name.toLowerCase().includes(ql) || x.tags.some(t => t.toLowerCase().includes(ql))));
+      const list = S.outfits.filter(x => (!onlyUsed || usedSet.has(x.id)) && tags.every(t => x.tags.includes(t)) && (!ql || x.name.toLowerCase().includes(ql) || x.tags.some(t => t.toLowerCase().includes(ql))));
       if (!list.length) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:30px' }, 'Kein Outfit gefunden.'));
       else host.append(h('div', { class: 'grid' }, list.map(x => outfitCard(x, () => { const k = sel.indexOf(x.id); if (k >= 0) sel.splice(k, 1); else sel.push(x.id); draw(); }, sel.includes(x.id)))));
       counter.textContent = sel.length === 0 ? 'Kein Outfit gewählt' : sel.length + (sel.length === 1 ? ' Outfit gewählt' : ' Outfits gewählt');
@@ -2016,8 +2055,10 @@ function openTripDayPicker(o) {
     const drawChips = () => {
       clear(chips);
       const all = allTags();
-      if (!all.length) { chips.style.display = 'none'; return; }
-      chips.append(chipBtn('Alle', !tags.length, () => { tags = []; drawChips(); draw(); }));
+      if (!all.length && !usedSet.size) { chips.style.display = 'none'; return; }
+      chips.style.display = '';
+      chips.append(chipBtn('Alle', !tags.length && !onlyUsed, () => { tags = []; onlyUsed = false; drawChips(); draw(); }));
+      if (usedSet.size) chips.append(chipBtn('An anderen Tagen geplant (' + usedSet.size + ')', onlyUsed, () => { onlyUsed = !onlyUsed; drawChips(); draw(); }));
       all.forEach(t => chips.append(chipBtn(t, tags.includes(t), () => { tags = tags.includes(t) ? tags.filter(x => x !== t) : tags.concat(t); drawChips(); draw(); })));
     };
     const fillRow = o.laterEmpty ? h('label', { class: 'checkrow', for: 'fill-rest' }, fill, h('span', null, 'Auswahl auch für alle folgenden leeren Tage übernehmen (' + o.laterEmpty + ')')) : null;
@@ -2158,7 +2199,9 @@ function openTripEdit(opts) {
     endInp.addEventListener('change', onEnd);
     const pickDay = i => {
       let later = 0; for (let j = i + 1; j < draft.n; j++) if (!(draft.byDate[keyOf(j)] || []).length) later++;
-      openTripDayPicker({ day: i, startDate: draft.startDate, selected: (draft.byDate[keyOf(i)] || []).map(e => e.o), laterEmpty: later, onDone: (ids, fillRest) => {
+      const usedElsewhere = new Set();
+      for (let j = 0; j < draft.n; j++) if (j !== i) (draft.byDate[keyOf(j)] || []).forEach(e => { if (getOutfit(e.o)) usedElsewhere.add(e.o); });
+      openTripDayPicker({ day: i, startDate: draft.startDate, usedIds: Array.from(usedElsewhere), selected: (draft.byDate[keyOf(i)] || []).map(e => e.o), laterEmpty: later, onDone: (ids, fillRest) => {
         const cur = draft.byDate[keyOf(i)] || [];
         const entries = ids.map(id => cur.find(e => e.o === id) || { o: id, l: null, l2: null, s: null });
         draft.byDate[keyOf(i)] = entries;
