@@ -45,6 +45,13 @@ button{cursor:pointer}
 .title{margin:0;font:600 31px/1.1 var(--serif);letter-spacing:-.012em}
 .pill-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 18px 0 14px;border:0;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:600}
 .pill-btn:active{transform:scale(.97)}
+.pill-btn.ghost{background:var(--surface);color:var(--accent);border:1px solid var(--line)}
+.btag{position:absolute;left:8px;top:8px;padding:2px 8px;border-radius:999px;background:var(--surface);color:var(--muted);font-size:11px;font-weight:700;border:1px solid var(--line)}
+.packwrap{display:flex;align-items:center;border-bottom:1px solid var(--line)}
+.packwrap .packrow{flex:1;min-width:0;border-bottom:0}
+.qty{display:flex;gap:6px;flex:none}
+.qty button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.qty button[disabled]{opacity:.4}
 
 /* Suche + Chips */
 .search{position:relative;margin:2px 0 12px}
@@ -98,6 +105,8 @@ button{cursor:pointer}
 .thumbs .more{color:var(--muted);font-size:13px;padding-left:2px}
 .status{display:inline-block;margin-top:10px;padding:3px 11px;border-radius:999px;font-size:13px;font-weight:600;background:var(--tile)}
 .status.warn{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.datepair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 8px}
+input[type=date].input{min-width:0;-webkit-appearance:none;appearance:none}
 .stepper{display:flex;align-items:center;gap:10px}
 .stepper button{flex:none;width:52px;height:52px;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
 .stepper button[disabled]{opacity:.4}
@@ -110,6 +119,16 @@ button{cursor:pointer}
 .dtxt small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .daycard{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:10px 10px 10px;margin:0 0 12px}
 .daycard.empty{border-style:dashed;background:transparent}
+.lchips{margin:2px 0 8px 58px}
+.tierrow{margin:0 0 4px}
+.tierrow .chips{margin-bottom:6px}
+.tierlabel{display:block;font-size:13px;color:var(--muted);margin:6px 0 4px}
+.shoeline{display:block;margin:2px 0 0;font-size:13px;color:var(--muted)}
+.shoeline.warn{color:var(--accent);font-weight:600}
+.statusrow{display:flex;flex-wrap:wrap;gap:6px}
+.statusrow .status{margin-right:0}
+.tierblock{display:grid;gap:8px;margin:0 0 18px}
+.layerrow{width:100%;border:1px solid var(--line);background:var(--surface);margin:0 0 8px;border-radius:14px;padding:6px 10px}
 .dayhead{display:flex;align-items:baseline;gap:10px;margin:0 0 6px 6px}
 .dayhead b{font-size:15px}
 .dayhead span{color:var(--muted);font-size:14px}
@@ -298,18 +317,35 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* =====================================================================
    Speicher: IndexedDB mit Fallback auf Arbeitsspeicher
    ===================================================================== */
-const APP_VERSION = '1.3';
+const APP_VERSION = '1.9';
 /* Update-sicherer Speicher. Regeln für zukünftige Änderungen:
    - DB_NAME niemals ändern, sonst sind die bestehenden Daten für die App unsichtbar.
    - Neue Stores/Indizes: DB_VERSION erhöhen und in onupgradeneeded ergänzen (vorhandene Stores bleiben unberührt).
    - Neues Datenformat: SCHEMA_VERSION erhöhen und eine Migration in DATA_MIGRATIONS eintragen. */
 const DB_NAME = 'kleiderschrank-v1';
 const DB_VERSION = 2;
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 6;
 const STORES = { items: 'id', outfits: 'id', trips: 'id', meta: null, photos: null };
 const DATA_MIGRATIONS = {
   // 2: Reisetage enthalten jetzt eine Liste von Outfits statt eines einzelnen (Version 1.2 → 1.3)
-  2: async () => { for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t)); }
+  2: async () => { for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t)); },
+  // 3: Reisetage enthalten Einträge { o: Outfit, l: Zusatzschicht oder null } (Version 1.5 → 1.6)
+  3: async () => { for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t)); },
+  // 4: Zusatzschichten haben zwei Ebenen mit Varianten (tier), Reisetage speichern pro Ebene eine Wahl (l, l2) (Version 1.6 → 1.7)
+  4: async () => {
+    for (const o of await Store.getAll('outfits')) await Store.put('outfits', o.id, normOutfit(o));
+    for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t));
+  },
+  // 5: Outfits haben passende Schuhe (shoeIds), Reiseeinträge speichern die gewählten Schuhe (s) (Version 1.7 → 1.8)
+  5: async () => {
+    for (const o of await Store.getAll('outfits')) await Store.put('outfits', o.id, normOutfit(o));
+    for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t));
+  },
+  // 6: Basics (Teile ohne festes Stück, optional ohne Foto) und Stückzahlen pro Reise (qty) (Version 1.8 → 1.9)
+  6: async () => {
+    for (const i of await Store.getAll('items')) await Store.put('items', i.id, normItem(i));
+    for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t));
+  }
 };
 const Store = {
   mode: 'idb', db: null, locked: null,
@@ -398,7 +434,13 @@ const getOutfit = id => S.outfits.find(x => x.id === id);
 const getCat = id => S.cats.find(x => x.id === id);
 const catLabel = it => { const c = getCat(it.categoryId); return c ? c.icon + ' ' + c.name : 'Ohne Kategorie'; };
 const upsert = (arr, rec) => (arr.some(x => x.id === rec.id) ? arr.map(x => x.id === rec.id ? rec : x) : [rec].concat(arr)).sort((a, b) => b.createdAt - a.createdAt);
-const thumbOf = it => (it.useCutout && it.thumbCut) ? it.thumbCut : it.thumbOrig;
+const placeholderCache = {};
+function placeholderImg(it) {
+  const c = getCat(it.categoryId), e = c ? c.icon : '👕';
+  if (!placeholderCache[e]) placeholderCache[e] = 'data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 100'><text x='40' y='64' font-size='44' text-anchor='middle'>" + e + '</text></svg>');
+  return placeholderCache[e];
+}
+const thumbOf = it => (it.useCutout && it.thumbCut) ? it.thumbCut : (it.thumbOrig || placeholderImg(it));
 
 async function persist(fn) {
   try { await fn(); return true; }
@@ -774,6 +816,13 @@ async function createBackup() {
       const o = S.outfits[i], meta = Object.assign({}, o); delete meta.thumb;
       const b = o.hasPhoto ? await Store.get('photos', 'outfit:' + o.id) : null;
       meta.photo = b ? await blobToDataURL(b) : null;
+      meta.layers = [];
+      for (const l of (o.layers || [])) {
+        const lm = Object.assign({}, l); delete lm.thumb;
+        const lb = l.hasPhoto ? await Store.get('photos', 'outfit:' + o.id + ':layer:' + l.id) : null;
+        lm.photo = lb ? await blobToDataURL(lb) : null;
+        meta.layers.push(lm);
+      }
       parts.push((i ? ',' : '') + JSON.stringify(meta));
       setBusy('Backup wird erstellt …', ++n / total);
     }
@@ -833,7 +882,11 @@ async function restoreFromFile(file) {
       setBusy('Backup wird eingespielt … ' + (n + 1) + ' von ' + total, n / total);
       await wait(0);
       const blob = m.photo ? dataURLToBlob(m.photo) : null;
-      if (!blob || !m.id) { skipped++; n++; continue; }
+      if (!m.id || (!blob && !m.basic)) { skipped++; n++; continue; }
+      if (!blob) {
+        const recB = { id: m.id, name: m.name || 'Basic', categoryId: m.categoryId || null, createdAt: m.createdAt || Date.now(), useCutout: false, strength: 50, hasCut: false, thumbOrig: '', thumbCut: null, basic: true };
+        S.items = upsert(S.items, recB); await Store.put('items', recB.id, recB); n++; continue;
+      }
       try {
         const proc = await processPhoto(blob);
         const strength = typeof m.strength === 'number' ? m.strength : 50;
@@ -842,7 +895,8 @@ async function restoreFromFile(file) {
           id: m.id, name: m.name || 'Teil', categoryId: m.categoryId || null, createdAt: m.createdAt || Date.now(),
           useCutout: !!(m.useCutout && cr.canvas), strength, hasCut: !!cr.canvas,
           thumbOrig: scaleCanvas(proc.cOrig, 360).toDataURL('image/jpeg', .82),
-          thumbCut: cr.canvas ? scaleCanvas(cr.canvas, 360).toDataURL('image/png') : null
+          thumbCut: cr.canvas ? scaleCanvas(cr.canvas, 360).toDataURL('image/png') : null,
+          basic: !!m.basic
         };
         await Store.put('photos', 'item:' + rec.id + ':orig', blob);
         if (cr.canvas) await Store.put('photos', 'item:' + rec.id + ':cut', await toBlob(cr.canvas, 'image/png'));
@@ -867,7 +921,21 @@ async function restoreFromFile(file) {
             await Store.put('photos', 'outfit:' + m.id, blob); dropPhotoURL('outfit:' + m.id);
           }
         }
-        const rec = { id: m.id, name: m.name || 'Outfit', tags: Array.isArray(m.tags) ? m.tags : [], itemIds: Array.isArray(m.itemIds) ? m.itemIds : [], createdAt: m.createdAt || Date.now(), thumb, hasPhoto };
+        const layers = [];
+        for (const lm of (Array.isArray(m.layers) ? m.layers : [])) {
+          if (!lm || !lm.id) continue;
+          let lthumb = null, lhas = false;
+          if (lm.photo) {
+            const lb = dataURLToBlob(lm.photo);
+            if (lb) {
+              const lcv = await blobToCanvas(lb, 1400);
+              lthumb = coverCanvas(lcv, 360, 480).toDataURL('image/jpeg', .82); lhas = true;
+              await Store.put('photos', 'outfit:' + m.id + ':layer:' + lm.id, lb); dropPhotoURL('outfit:' + m.id + ':layer:' + lm.id);
+            }
+          }
+          layers.push({ id: lm.id, name: lm.name || '', tier: lm.tier === 1 ? 1 : 0, itemIds: Array.isArray(lm.itemIds) ? lm.itemIds : [], hasPhoto: lhas, thumb: lthumb });
+        }
+        const rec = { id: m.id, name: m.name || 'Outfit', tags: Array.isArray(m.tags) ? m.tags : [], itemIds: Array.isArray(m.itemIds) ? m.itemIds : [], createdAt: m.createdAt || Date.now(), thumb, hasPhoto, layers, tierNames: Array.isArray(m.tierNames) ? [String(m.tierNames[0] || ''), String(m.tierNames[1] || '')] : ['', ''], shoeIds: Array.isArray(m.shoeIds) ? m.shoeIds.filter(x => typeof x === 'string') : [] };
         S.outfits = upsert(S.outfits, rec);
         await Store.put('outfits', rec.id, rec);
       } catch (e) { console.error(e); skipped++; }
@@ -934,19 +1002,19 @@ function itemTile(it, o) {
   o = o || {};
   const cut = it.useCutout && it.thumbCut;
   return h('button', { class: 'tile' + (o.selected ? ' sel' : ''), type: 'button', 'aria-label': it.name + ', ' + (getCat(it.categoryId) ? getCat(it.categoryId).name : 'ohne Kategorie'), 'aria-pressed': o.select ? String(!!o.selected) : null, onclick: o.onClick },
-    h('span', { class: 'tile-img' }, h('img', { src: thumbOf(it), alt: '', class: cut ? 'cut' : 'photo', loading: 'lazy' }), o.selected ? h('span', { class: 'badge' }, icon('check', 16)) : null),
+    h('span', { class: 'tile-img' }, h('img', { src: thumbOf(it), alt: '', class: cut ? 'cut' : 'photo', loading: 'lazy' }), it.basic ? h('span', { class: 'btag' }, 'Basic') : null, o.selected ? h('span', { class: 'badge' }, icon('check', 16)) : null),
     h('span', { class: 'tile-name' }, it.name),
     o.noSub ? null : h('span', { class: 'tile-sub' }, catLabel(it)));
 }
 function viewCloset() {
   const page = h('div', { class: 'page' });
-  page.append(topBar('Schrank', S.items.length ? h('button', { class: 'pill-btn', type: 'button', onclick: addItems }, icon('plus', 20), 'Teil') : h('span')));
+  page.append(topBar('Schrank', S.items.length ? h('div', { style: 'display:flex;gap:8px' }, h('button', { class: 'pill-btn ghost', type: 'button', onclick: () => openBasicEdit({}) }, icon('plus', 20), 'Basic'), h('button', { class: 'pill-btn', type: 'button', onclick: addItems }, icon('plus', 20), 'Teil')) : h('span')));
   const host = h('div');
   const draw = () => {
     clear(host);
     const list = filteredItems();
     if (!S.items.length) {
-      host.append(h('div', { class: 'empty' }, h('h2', null, 'Dein Schrank ist noch leer'), h('p', null, 'Fotografiere dein erstes Kleidungsstück. Der Hintergrund wird automatisch entfernt.'), h('button', { class: 'btn primary', type: 'button', onclick: addItems }, icon('camera', 20), 'Erstes Teil hinzufügen')));
+      host.append(h('div', { class: 'empty' }, h('h2', null, 'Dein Schrank ist noch leer'), h('p', null, 'Fotografiere dein erstes Kleidungsstück. Der Hintergrund wird automatisch entfernt.'), h('button', { class: 'btn primary', type: 'button', onclick: addItems }, icon('camera', 20), 'Erstes Teil hinzufügen'), h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openBasicEdit({}) }, 'Oder ein Basic anlegen'))));
       return;
     }
     if (!list.length) {
@@ -1073,42 +1141,82 @@ function openItemDetail(id) {
       const img = h('img', { src: thumbOf(it), alt: it.name, class: it.useCutout && it.thumbCut ? 'cut' : 'photo' });
       photoURL(cutKey).then(u => { if (u && img.isConnected) img.src = u; });
       const outs = S.outfits.filter(o => o.itemIds.includes(id));
+      const outsLayer = S.outfits.filter(o => !o.itemIds.includes(id) && (o.layers || []).some(l => l.itemIds.includes(id)));
+      const outsShoe = S.outfits.filter(o => (o.shoeIds || []).includes(id));
       root.append(
         shead(it.name, backBtn(ctl), textBtn('Bearbeiten', () => openItemEdit({ id }), true)),
         h('div', { class: 'sbody' },
           h('div', { class: 'hero' }, img),
           h('h1', { class: 'h1' }, it.name),
-          h('p', { class: 'meta' }, catLabel(it)),
+          h('p', { class: 'meta' }, catLabel(it) + (it.basic ? ' · Basic' : '')),
+          it.basic ? h('p', { class: 'meta', style: 'font-size:14px' }, 'Ein Basic steht für mehrere gleiche Teile. Auf Reisen wird die Stückzahl gezählt.') : null,
           h('div', { class: 'sec' }, h('span', null, 'Outfits mit diesem Teil (' + outs.length + ')')),
           outs.length
             ? h('div', { class: 'grid three' }, outs.map(o => outfitCard(o, () => openOutfitDetail(o.id))))
-            : h('p', { class: 'meta' }, 'Dieses Teil ist noch in keinem Outfit.'),
+            : h('p', { class: 'meta' }, (outsLayer.length || outsShoe.length) ? 'Dieses Teil ist in keinem Outfit direkt enthalten.' : 'Dieses Teil ist noch in keinem Outfit.'),
+          outsLayer.length ? h('div', { class: 'sec' }, h('span', null, 'Als Zusatzschicht in (' + outsLayer.length + ')')) : null,
+          outsLayer.length ? h('div', { class: 'grid three' }, outsLayer.map(o => outfitCard(o, () => openOutfitDetail(o.id)))) : null,
+          outsShoe.length ? h('div', { class: 'sec' }, h('span', null, 'Passt als Schuhe zu (' + outsShoe.length + ')')) : null,
+          outsShoe.length ? h('div', { class: 'grid three' }, outsShoe.map(o => outfitCard(o, () => openOutfitDetail(o.id)))) : null,
           h('div', { style: 'margin-top:18px' }, h('button', { class: 'btn block', type: 'button', onclick: () => openOutfitEdit({ preselect: id }) }, icon('plus', 20), outs.length ? 'Weiteres Outfit mit diesem Teil' : 'Outfit mit diesem Teil anlegen'))));
     };
     ctl.render = draw; draw();
   }, { label: 'Teil' });
 }
 function openOutfitDetail(id) {
+  let sel = [null, null];
   openSheet((root, ctl) => {
     const draw = () => {
       const o = getOutfit(id);
       if (!o) { ctl.close(); return; }
+      const layers = o.layers || [];
+      const vars = [0, 1].map(t => layers.find(l => l.id === sel[t] && l.tier === t) || null);
+      sel = vars.map(v => v ? v.id : null);
       clear(root);
+      const chosen = vars.filter(Boolean), outer = chosen[chosen.length - 1] || null, pv = photoLayer(vars);
       const hero = h('div', { class: 'hero portrait' });
-      if (o.hasPhoto) {
+      if (pv) {
+        const img = h('img', { src: pv.thumb, alt: 'Foto: ' + o.name + ', ' + layerLabel(o, pv), class: 'photo' });
+        hero.append(img);
+        photoURL('outfit:' + id + ':layer:' + pv.id).then(u => { if (u && img.isConnected) img.src = u; });
+      } else if (o.hasPhoto) {
         const img = h('img', { src: o.thumb, alt: 'Foto: ' + o.name, class: 'photo' });
         hero.append(img);
         photoURL('outfit:' + id).then(u => { if (u && img.isConnected) img.src = u; });
       } else hero.append(h('div', { style: 'width:100%;height:100%' }, outfitCover(o)));
-      const its = o.itemIds.map(getItem).filter(Boolean);
+      let note = null;
+      if (chosen.length && !pv) note = 'Für diese Auswahl gibt es kein eigenes Foto. Gezeigt wird das Outfit ohne Zusatzschicht.';
+      else if (pv && outer && pv.id !== outer.id) note = 'Die äußere Zusatzschicht hat kein eigenes Foto. Gezeigt wird das Foto von „' + layerLabel(o, pv) + '“.';
+      const its = o.itemIds.map(x => getItem(x)).filter(Boolean);
+      const shoes = (o.shoeIds || []).map(x => getItem(x)).filter(Boolean);
+      const tierRows = [0, 1].map(t => {
+        const list = layers.filter(l => l.tier === t);
+        if (!list.length) return null;
+        return h('div', { class: 'tierrow' }, h('span', { class: 'tierlabel' }, tierName(o, t)),
+          h('div', { class: 'chips', role: 'group', 'aria-label': tierName(o, t) + ' anzeigen' },
+            chipBtn('Ohne', !vars[t], () => { sel[t] = null; draw(); }),
+            list.map(l => chipBtn(layerLabel(o, l), sel[t] === l.id, () => { sel[t] = l.id; draw(); }))));
+      }).filter(Boolean);
+      const extra = [];
+      [0, 1].forEach(t => {
+        if (!vars[t]) return;
+        const lits = vars[t].itemIds.map(x => getItem(x)).filter(Boolean);
+        extra.push(h('div', { class: 'sec' }, h('span', null, tierName(o, t) + ': ' + layerLabel(o, vars[t]) + ' (' + lits.length + ')')));
+        extra.push(h('div', { class: 'grid three' }, lits.map(it => itemTile(it, { noSub: true, onClick: () => openItemDetail(it.id) }))));
+      });
       root.append(
         shead(o.name, backBtn(ctl), textBtn('Bearbeiten', () => openOutfitEdit({ id }), true)),
         h('div', { class: 'sbody' },
+          h('div', null, tierRows),
           hero,
+          note ? h('p', { class: 'meta' }, note) : null,
           h('h1', { class: 'h1' }, o.name),
           o.tags.length ? h('div', { class: 'chips wrap', style: 'margin-top:8px' }, o.tags.map(t => h('span', { class: 'chip' }, t))) : null,
           h('div', { class: 'sec' }, h('span', null, 'Teile in diesem Outfit (' + its.length + ')')),
-          its.length ? h('div', { class: 'grid three' }, its.map(it => itemTile(it, { noSub: true, onClick: () => openItemDetail(it.id) }))) : h('p', { class: 'meta' }, 'Keine Teile ausgewählt. Tippe oben auf „Bearbeiten“, um Teile hinzuzufügen.')));
+          its.length ? h('div', { class: 'grid three' }, its.map(it => itemTile(it, { noSub: true, onClick: () => openItemDetail(it.id) }))) : h('p', { class: 'meta' }, 'Keine Teile ausgewählt. Tippe oben auf „Bearbeiten“, um Teile hinzuzufügen.'),
+          h('div', null, extra),
+          shoes.length ? h('div', { class: 'sec' }, h('span', null, 'Passende Schuhe (' + shoes.length + ')')) : null,
+          shoes.length ? h('div', { class: 'grid three' }, shoes.map(it => itemTile(it, { noSub: true, onClick: () => openItemDetail(it.id) }))) : null));
     };
     ctl.render = draw; draw();
   }, { label: 'Outfit' });
@@ -1120,6 +1228,7 @@ function openOutfitDetail(id) {
 function openItemEdit(opts) {
   const existing = opts.id ? getItem(opts.id) : null;
   if (opts.id && !existing) return;
+  if (existing && existing.basic) { openBasicEdit(opts); return; }
   const draft = {
     name: existing ? existing.name : '',
     categoryId: existing ? existing.categoryId : (getCat(S.settings.lastCat) ? S.settings.lastCat : (S.cats[0] ? S.cats[0].id : null)),
@@ -1251,11 +1360,91 @@ function openItemEdit(opts) {
     })();
   }, { label: existing ? 'Teil bearbeiten' : 'Neues Teil' });
 }
+function openBasicEdit(opts) {
+  const existing = opts.id ? getItem(opts.id) : null;
+  if (opts.id && !existing) return;
+  const draft = {
+    name: existing ? existing.name : '',
+    categoryId: existing ? existing.categoryId : (getCat(S.settings.lastCat) ? S.settings.lastCat : (S.cats[0] ? S.cats[0].id : null)),
+    photo: null, removePhoto: false, previewURL: null
+  };
+  const hadPhoto = !!(existing && existing.thumbOrig);
+  const sig = () => JSON.stringify([draft.name, draft.categoryId, !!draft.photo, draft.removePhoto]);
+  const initial = sig();
+  let saving = false;
+  openSheet((root, ctl) => {
+    const heroHost = h('div', { class: 'hero' }), photoBtns = h('div', { class: 'stack', style: 'margin:0 0 18px' }), catBox = h('div', { class: 'chips wrap' });
+    const saveBtn = h('button', { class: 'tbtn r', type: 'button', onclick: () => save() }, 'Sichern');
+    const nameInp = h('input', { class: 'input', id: 'basic-name', type: 'text', value: draft.name, placeholder: 'z. B. Weißes T-Shirt', enterkeyhint: 'done', autocomplete: 'off', maxlength: '60' });
+    nameInp.addEventListener('input', () => { draft.name = nameInp.value; upd(); });
+    nameInp.addEventListener('keydown', e => { if (e.key === 'Enter') nameInp.blur(); });
+    ctl.guard = async () => { if (saving) return false; if (sig() === initial) return true; return confirmDialog({ title: 'Änderungen verwerfen?', body: 'Deine Eingaben gehen verloren.', confirmLabel: 'Verwerfen', cancelLabel: 'Weiter bearbeiten', danger: true }); };
+    ctl.onClose = () => { if (draft.previewURL) URL.revokeObjectURL(draft.previewURL); };
+    const hasPhotoNow = () => !!draft.photo || (hadPhoto && !draft.removePhoto);
+    const upd = () => { saveBtn.disabled = saving || !draft.name.trim(); saveBtn.textContent = saving ? 'Sichert …' : 'Sichern'; };
+    const choose = async () => {
+      const f = (await pickFiles(false))[0]; if (!f) return;
+      if (draft.previewURL) URL.revokeObjectURL(draft.previewURL);
+      draft.photo = f; draft.removePhoto = false; draft.previewURL = URL.createObjectURL(f); drawPhoto();
+    };
+    const drawPhoto = () => {
+      clear(heroHost); clear(photoBtns);
+      if (draft.previewURL) heroHost.append(h('img', { src: draft.previewURL, alt: 'Vorschau des Fotos', class: 'photo' }));
+      else if (hadPhoto && !draft.removePhoto) {
+        const img = h('img', { src: existing.thumbOrig, alt: existing.name, class: 'photo' });
+        heroHost.append(img);
+        photoURL('item:' + existing.id + ':orig').then(u => { if (u && img.isConnected) img.src = u; });
+      } else heroHost.append(h('img', { src: placeholderImg({ categoryId: draft.categoryId }), alt: 'Kein Foto, Symbol der Kategorie', class: 'photo', style: 'width:60%;height:60%' }));
+      photoBtns.append(h('button', { class: 'btn block', type: 'button', onclick: choose }, icon('camera', 20), hasPhotoNow() ? 'Anderes Foto wählen' : 'Foto hinzufügen (optional)'));
+      if (hasPhotoNow()) photoBtns.append(h('button', { class: 'btn danger block', type: 'button', onclick: () => { draft.photo = null; draft.removePhoto = true; if (draft.previewURL) { URL.revokeObjectURL(draft.previewURL); draft.previewURL = null; } drawPhoto(); } }, 'Foto entfernen'));
+    };
+    const drawCats = () => {
+      clear(catBox);
+      S.cats.forEach(c => catBox.append(chipBtn(c.icon + ' ' + c.name, draft.categoryId === c.id, () => { draft.categoryId = draft.categoryId === c.id ? null : c.id; drawCats(); if (!hasPhotoNow()) drawPhoto(); })));
+      catBox.append(chipBtn('+ Neue Kategorie', null, () => openCategoryEdit({ onSaved: id => { draft.categoryId = id; drawCats(); if (!hasPhotoNow()) drawPhoto(); } }), 'ghost'));
+    };
+    const save = async () => {
+      if (saving || !draft.name.trim()) return;
+      saving = true; upd();
+      try {
+        const id = existing ? existing.id : uid();
+        let thumbOrig = existing ? existing.thumbOrig : '', blob = null;
+        if (draft.photo) { const cv = await blobToCanvas(draft.photo, 1000); blob = await toBlob(cv, 'image/jpeg', .86); thumbOrig = scaleCanvas(cv, 360).toDataURL('image/jpeg', .82); }
+        else if (draft.removePhoto) thumbOrig = '';
+        const rec = Object.assign({}, existing || {}, { id, name: draft.name.trim(), categoryId: draft.categoryId, createdAt: existing ? existing.createdAt : Date.now(), useCutout: false, strength: 50, hasCut: false, thumbOrig, thumbCut: null, basic: true });
+        const ok = await persist(async () => {
+          if (blob) await Store.put('photos', 'item:' + id + ':orig', blob);
+          else if (draft.removePhoto && hadPhoto) await Store.del('photos', 'item:' + id + ':orig');
+          await Store.del('photos', 'item:' + id + ':cut');
+          await Store.put('items', id, rec);
+        });
+        if (!ok) { saving = false; upd(); return; }
+        dropPhotoURL('item:' + id + ':orig'); dropPhotoURL('item:' + id + ':cut');
+        S.items = upsert(S.items, rec);
+        S.settings.lastCat = draft.categoryId; saveSettings();
+        saving = false; ctl.close(); refreshAll(); toast('Gespeichert.');
+      } catch (e) { console.error(e); saving = false; upd(); toast('Speichern hat nicht geklappt.'); }
+    };
+    root.append(
+      shead(existing ? 'Basic bearbeiten' : 'Neues Basic', textBtn('Abbrechen', () => ctl.requestClose()), saveBtn),
+      h('div', { class: 'sbody' },
+        h('p', { class: 'meta', style: 'margin:0 0 12px' }, 'Ein Basic steht für mehrere gleiche Teile, zum Beispiel jedes weiße T-Shirt. Auf der Packliste wird gezählt, wie oft du es brauchst.'),
+        heroHost, photoBtns,
+        h('div', { class: 'field' }, h('label', { for: 'basic-name' }, 'Name'), nameInp),
+        h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Kategorie'), catBox),
+        existing ? h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn danger block', type: 'button', onclick: async () => { const closed = await ctl.requestClose(); if (closed) deleteItem(existing.id); } }, 'Basic löschen')) : null));
+    drawPhoto(); drawCats(); upd();
+  }, { label: existing ? 'Basic bearbeiten' : 'Neues Basic' });
+}
 async function deleteItem(id) {
   const it = getItem(id); if (!it) return;
   const snap = snapshot();
   S.items = S.items.filter(x => x.id !== id);
-  S.outfits = S.outfits.map(o => o.itemIds.includes(id) ? Object.assign({}, o, { itemIds: o.itemIds.filter(x => x !== id) }) : o);
+  S.outfits = S.outfits.map(o => {
+    const inLayer = (o.layers || []).some(l => l.itemIds.includes(id)), inShoe = (o.shoeIds || []).includes(id);
+    if (!o.itemIds.includes(id) && !inLayer && !inShoe) return o;
+    return Object.assign({}, o, { itemIds: o.itemIds.filter(x => x !== id), shoeIds: (o.shoeIds || []).filter(x => x !== id), layers: (o.layers || []).map(l => Object.assign({}, l, { itemIds: l.itemIds.filter(x => x !== id) })).filter(l => l.itemIds.length) });
+  });
   await persistDiff(snap);
   refreshAll();
   toast('„' + it.name + '“ gelöscht', { label: 'Rückgängig', fn: () => undoTo(snap) });
@@ -1277,10 +1466,14 @@ function openOutfitEdit(opts) {
     name: existing ? existing.name : '',
     tags: existing ? existing.tags.slice() : [],
     itemIds: existing ? existing.itemIds.filter(id => getItem(id)) : (opts.preselect && getItem(opts.preselect) ? [opts.preselect] : []),
-    photo: null, removePhoto: false
+    photo: null, removePhoto: false,
+    layers: existing ? (existing.layers || []).map(l => ({ id: l.id, name: l.name || '', tier: l.tier === 1 ? 1 : 0, itemIds: l.itemIds.filter(x => getItem(x)), hasPhoto: !!l.hasPhoto, thumb: l.thumb || null, photo: null, removePhoto: false, previewURL: null })) : [],
+    tierNames: existing ? [(existing.tierNames || [])[0] || '', (existing.tierNames || [])[1] || ''] : ['', ''],
+    shoeIds: existing ? (existing.shoeIds || []).filter(x => getItem(x)) : []
   };
   const hadPhoto = !!(existing && existing.hasPhoto);
-  const initial = JSON.stringify([draft.name, draft.tags, draft.itemIds]);
+  const layersSig = () => JSON.stringify([draft.layers.map(l => [l.id, l.name, l.tier, l.itemIds, !!l.photo, !!(l.hasPhoto && !l.removePhoto)]), draft.tierNames.map(x => x.trim())]);
+  const initial = JSON.stringify([draft.name, draft.tags, draft.itemIds, draft.shoeIds, layersSig()]);
   let saving = false, previewURL = null;
   openSheet((root, ctl) => {
     const heroHost = h('div', { class: 'hero portrait' });
@@ -1288,6 +1481,8 @@ function openOutfitEdit(opts) {
     const tagBox = h('div', { class: 'chips wrap', style: 'margin-bottom:8px' });
     const sugBox = h('div', { class: 'chips wrap', style: 'margin-top:10px' });
     const itemBox = h('div');
+    const layerBox = h('div');
+    const shoeBox = h('div');
     const saveBtn = h('button', { class: 'tbtn r', type: 'button', onclick: () => save() }, 'Sichern');
     const nameInp = h('input', { class: 'input', id: 'outfit-name', type: 'text', value: draft.name, placeholder: 'z. B. Sonntag im Café', enterkeyhint: 'done', autocomplete: 'off', maxlength: '60' });
     nameInp.addEventListener('input', () => { draft.name = nameInp.value; });
@@ -1300,9 +1495,9 @@ function openOutfitEdit(opts) {
     const hasPhotoNow = () => !!draft.photo || (hadPhoto && !draft.removePhoto);
     const canSave = () => !saving && (hasPhotoNow() || draft.itemIds.length > 0);
     const updateSave = () => { saveBtn.disabled = !canSave(); saveBtn.textContent = saving ? 'Sichert …' : 'Sichern'; };
-    const isDirty = () => JSON.stringify([draft.name, draft.tags, draft.itemIds]) !== initial || !!draft.photo || draft.removePhoto;
+    const isDirty = () => JSON.stringify([draft.name, draft.tags, draft.itemIds, draft.shoeIds, layersSig()]) !== initial || !!draft.photo || draft.removePhoto;
     ctl.guard = async () => { if (saving) return false; if (!isDirty()) return true; return confirmDialog({ title: 'Änderungen verwerfen?', body: 'Deine Eingaben gehen verloren.', confirmLabel: 'Verwerfen', cancelLabel: 'Weiter bearbeiten', danger: true }); };
-    ctl.onClose = () => { if (previewURL) URL.revokeObjectURL(previewURL); };
+    ctl.onClose = () => { if (previewURL) URL.revokeObjectURL(previewURL); draft.layers.forEach(l => { if (l.previewURL) URL.revokeObjectURL(l.previewURL); }); };
 
     const choosePhoto = async () => {
       const f = (await pickFiles(false))[0]; if (!f) return;
@@ -1338,6 +1533,42 @@ function openOutfitEdit(opts) {
       itemBox.append(h('button', { class: 'btn block', type: 'button', onclick: () => openItemPicker(draft.itemIds, ids => { draft.itemIds = ids; drawItems(); }) }, icon('plus', 20), its.length ? 'Teile ändern' : 'Teile auswählen'));
       updateSave();
     };
+    const drawShoes = () => {
+      clear(shoeBox);
+      const sh = draft.shoeIds.map(x => getItem(x)).filter(Boolean);
+      if (sh.length) shoeBox.append(h('div', { class: 'grid three', style: 'margin-bottom:14px' }, sh.map(it => h('div', { class: 'tilebox' }, itemTile(it, { noSub: true, onClick: () => openItemDetail(it.id) }), h('button', { class: 'rm', type: 'button', 'aria-label': it.name + ' entfernen', onclick: () => { draft.shoeIds = draft.shoeIds.filter(x => x !== it.id); drawShoes(); } }, h('span', null, icon('x', 14)))))));
+      else shoeBox.append(h('p', { class: 'meta' }, 'Noch keine Schuhe gewählt.'));
+      const startCat = getCat('std-schuhe') && S.items.some(i => i.categoryId === 'std-schuhe') ? 'std-schuhe' : 'all';
+      shoeBox.append(h('button', { class: 'btn block', type: 'button', onclick: () => openItemPicker(draft.shoeIds, ids => { draft.shoeIds = ids; drawShoes(); }, startCat) }, icon('plus', 20), sh.length ? 'Schuhe ändern' : 'Schuhe auswählen'));
+    };
+    const layerRow = l => {
+      const hasPh = !!(l.previewURL || (l.hasPhoto && !l.removePhoto));
+      const first = l.itemIds.map(x => getItem(x)).find(Boolean);
+      const src = l.previewURL || (l.hasPhoto && !l.removePhoto ? l.thumb : null) || (first ? thumbOf(first) : null);
+      return h('button', { class: 'orow-main layerrow', type: 'button', 'aria-label': 'Variante bearbeiten: ' + layerLabel(null, l), onclick: () => editLayer(l, l.tier) },
+        h('span', { class: 'dimg' }, src ? h('img', { src, alt: '' }) : null),
+        h('span', { class: 'dtxt' }, h('b', null, layerLabel(null, l)), h('small', null, partWord(l.itemIds.filter(x => getItem(x)).length) + (hasPh ? ' · mit Foto' : ' · ohne Foto'))),
+        icon('chev', 18));
+    };
+    const drawLayers = () => {
+      clear(layerBox);
+      const any = draft.layers.length > 0;
+      [0, 1].forEach(t => {
+        if (t === 1 && !any) return;   // zweite Zusatzschicht erst anbieten, wenn die erste Varianten hat
+        const block = h('div', { class: 'tierblock', 'data-tier': String(t) });
+        const nm = h('input', { class: 'input', type: 'text', value: draft.tierNames[t], placeholder: 'Bezeichnung (optional), z. B. ' + (t === 0 ? 'Hemd' : 'Jacke'), maxlength: '30', 'aria-label': 'Bezeichnung von Zusatzschicht ' + (t + 1) });
+        nm.addEventListener('input', () => { draft.tierNames[t] = nm.value; });
+        block.append(h('span', { class: 'lbl' }, 'Zusatzschicht ' + (t + 1) + (t === 1 ? ' (darüber)' : '')), nm);
+        draft.layers.filter(l => l.tier === t).forEach(l => block.append(layerRow(l)));
+        block.append(h('button', { class: 'btn block', type: 'button', onclick: () => editLayer(null, t) }, icon('plus', 20), 'Variante hinzufügen'));
+        layerBox.append(block);
+      });
+    };
+    const editLayer = (l, tier) => openLayerEdit({
+      outfitId: existing ? existing.id : null, layer: l, tier,
+      onSave: nl => { const k = draft.layers.findIndex(x => x.id === nl.id); if (k >= 0) draft.layers[k] = nl; else draft.layers.push(nl); drawLayers(); },
+      onDelete: lid => { const g = draft.layers.find(x => x.id === lid); if (g && g.previewURL) URL.revokeObjectURL(g.previewURL); draft.layers = draft.layers.filter(x => x.id !== lid); drawLayers(); }
+    });
     const save = async () => {
       if (!canSave()) return;
       saving = true; updateSave();
@@ -1349,14 +1580,28 @@ function openOutfitEdit(opts) {
           photoBlob = await toBlob(cv, 'image/jpeg', .86);
           thumb = coverCanvas(cv, 360, 480).toDataURL('image/jpeg', .82); hasPhoto = true;
         } else if (draft.removePhoto) { thumb = null; hasPhoto = false; }
-        const rec = Object.assign({}, existing || {}, { id, name: draft.name.trim() || (existing ? existing.name : 'Outfit ' + (S.outfits.length + 1)), tags: draft.tags.slice(), itemIds: draft.itemIds.slice(), createdAt: existing ? existing.createdAt : Date.now(), thumb, hasPhoto });
+        const lPuts = [], lDels = [], layerRecs = [];
+        for (const l of draft.layers) {
+          let lHas = !!(l.hasPhoto && !l.removePhoto), lThumb = lHas ? l.thumb : null;
+          if (l.photo) {
+            const lcv = await blobToCanvas(l.photo, 1400);
+            lPuts.push(['outfit:' + id + ':layer:' + l.id, await toBlob(lcv, 'image/jpeg', .86)]);
+            lThumb = coverCanvas(lcv, 360, 480).toDataURL('image/jpeg', .82); lHas = true;
+          } else if (l.hasPhoto && l.removePhoto) lDels.push('outfit:' + id + ':layer:' + l.id);
+          layerRecs.push({ id: l.id, name: (l.name || '').trim(), tier: l.tier === 1 ? 1 : 0, itemIds: l.itemIds.filter(x => getItem(x)), hasPhoto: lHas, thumb: lThumb });
+        }
+        (existing ? (existing.layers || []) : []).forEach(pl => { if (pl.hasPhoto && !draft.layers.some(l => l.id === pl.id)) lDels.push('outfit:' + id + ':layer:' + pl.id); });
+        const rec = Object.assign({}, existing || {}, { id, name: draft.name.trim() || (existing ? existing.name : 'Outfit ' + (S.outfits.length + 1)), tags: draft.tags.slice(), itemIds: draft.itemIds.slice(), createdAt: existing ? existing.createdAt : Date.now(), thumb, hasPhoto, layers: layerRecs, tierNames: draft.tierNames.map(x => x.trim()), shoeIds: draft.shoeIds.slice() });
         const ok = await persist(async () => {
           if (photoBlob) await Store.put('photos', 'outfit:' + id, photoBlob);
           else if (draft.removePhoto && hadPhoto) await Store.del('photos', 'outfit:' + id);
+          for (const pu of lPuts) await Store.put('photos', pu[0], pu[1]);
+          for (const k of lDels) await Store.del('photos', k);
           await Store.put('outfits', id, rec);
         });
         if (!ok) { saving = false; updateSave(); return; }
         dropPhotoURL('outfit:' + id);
+        lPuts.forEach(pu => dropPhotoURL(pu[0])); lDels.forEach(k => dropPhotoURL(k));
         S.outfits = upsert(S.outfits, rec);
         saving = false; ctl.close(); refreshAll(); toast('Gespeichert.');
       } catch (e) { console.error(e); saving = false; updateSave(); toast('Speichern hat nicht geklappt.'); }
@@ -1371,23 +1616,81 @@ function openOutfitEdit(opts) {
           h('div', { class: 'tagbar' }, tagInp, h('button', { class: 'btn', type: 'button', 'aria-label': 'Tag hinzufügen', onclick: () => addTag(tagInp.value) }, icon('plus', 20))),
           h('span', { class: 'hint' }, 'Zum Beispiel Jahreszeit, Anlass oder Stimmung.'), sugBox),
         h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Teile in diesem Outfit'), itemBox),
+        h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Passende Schuhe (optional)'), h('span', { class: 'hint' }, 'Schuhe, die zu diesem Outfit passen. Es gibt kein eigenes Foto dafür, du siehst sie nur als Auswahl.'), shoeBox),
+        h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Zusatzschichten (optional)'), h('span', { class: 'hint' }, 'Bis zu zwei Schichten, die du übereinander ziehst, zum Beispiel Hemd und Jacke. Jede hat mehrere Varianten, auf Wunsch mit eigenem Foto. Sie kommen nur mit, wenn du sie bei einer Reise wählst.'), layerBox),
         existing ? h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn danger block', type: 'button', onclick: async () => { const closed = await ctl.requestClose(); if (closed) deleteOutfit(existing.id); } }, 'Outfit löschen')) : null));
-    drawPhoto(); drawTags(); drawItems();
+    drawPhoto(); drawTags(); drawItems(); drawShoes(); drawLayers();
   }, { label: existing ? 'Outfit bearbeiten' : 'Neues Outfit' });
+}
+const layerLabel = (o, l) => (l.name && l.name.trim()) || ('Mit ' + (l.itemIds.map(x => getItem(x)).filter(Boolean).map(it => it.name).join(' + ') || 'Zusatzschicht'));
+const tierName = (o, t) => ((o && o.tierNames && o.tierNames[t]) || '').trim() || ('Zusatzschicht ' + (t + 1));
+const findLayer = (o, lid, tier) => (lid && o ? (o.layers || []).find(x => x.id === lid && x.tier === tier) : null) || null;
+// Foto bei gewählten Varianten: die äußerste Schicht mit Foto gewinnt
+const photoLayer = vars => { for (let k = vars.length - 1; k >= 0; k--) if (vars[k] && vars[k].hasPhoto) return vars[k]; return null; };
+function openLayerEdit(opts) {
+  const src = opts.layer, tier = src ? src.tier : opts.tier;
+  const draft = src ? Object.assign({}, src, { itemIds: src.itemIds.slice() }) : { id: 'ly-' + uid(), name: '', tier, itemIds: [], hasPhoto: false, thumb: null, photo: null, removePhoto: false, previewURL: null };
+  const sig = () => JSON.stringify([draft.name, draft.itemIds, !!draft.photo, !!(draft.hasPhoto && !draft.removePhoto)]);
+  const initial = sig();
+  const created = []; let committed = false;
+  openSheet((root, ctl) => {
+    const heroHost = h('div', { class: 'hero portrait' }), photoBtns = h('div', { class: 'stack', style: 'margin:0 0 18px' }), itemBox = h('div');
+    const doneBtn = h('button', { class: 'tbtn r', type: 'button', onclick: () => { committed = true; opts.onSave(draft); ctl.close(); } }, 'Übernehmen');
+    const nameInp = h('input', { class: 'input', id: 'layer-name', type: 'text', value: draft.name, placeholder: 'z. B. Hemd blau oder Regenjacke', enterkeyhint: 'done', autocomplete: 'off', maxlength: '40' });
+    nameInp.addEventListener('input', () => { draft.name = nameInp.value; });
+    nameInp.addEventListener('keydown', e => { if (e.key === 'Enter') nameInp.blur(); });
+    ctl.guard = async () => { if (sig() === initial) return true; return confirmDialog({ title: 'Änderungen verwerfen?', body: 'Deine Eingaben gehen verloren.', confirmLabel: 'Verwerfen', cancelLabel: 'Weiter bearbeiten', danger: true }); };
+    ctl.onClose = () => { if (!committed) created.forEach(u => URL.revokeObjectURL(u)); };
+    const hasPhotoNow = () => !!draft.photo || !!(draft.hasPhoto && !draft.removePhoto);
+    const upd = () => { doneBtn.disabled = !draft.itemIds.some(x => getItem(x)); };
+    const choose = async () => {
+      const f = (await pickFiles(false))[0]; if (!f) return;
+      if (draft.previewURL && created.indexOf(draft.previewURL) >= 0) URL.revokeObjectURL(draft.previewURL);
+      draft.photo = f; draft.removePhoto = false; draft.previewURL = URL.createObjectURL(f); created.push(draft.previewURL);
+      drawPhoto();
+    };
+    const drawPhoto = () => {
+      clear(heroHost); clear(photoBtns);
+      if (draft.previewURL) heroHost.append(h('img', { src: draft.previewURL, alt: 'Vorschau: Outfit mit dieser Variante', class: 'photo' }));
+      else if (draft.hasPhoto && !draft.removePhoto) {
+        const img = h('img', { src: draft.thumb, alt: 'Foto: Outfit mit dieser Variante', class: 'photo' });
+        heroHost.append(img);
+        if (opts.outfitId) photoURL('outfit:' + opts.outfitId + ':layer:' + draft.id).then(u => { if (u && img.isConnected) img.src = u; });
+      } else heroHost.append(h('button', { class: 'btn', type: 'button', style: 'border-style:dashed;background:transparent', onclick: choose }, icon('camera', 20), 'Foto mit dieser Variante wählen'));
+      if (hasPhotoNow()) photoBtns.append(h('button', { class: 'btn block', type: 'button', onclick: choose }, icon('camera', 20), 'Anderes Foto wählen'), h('button', { class: 'btn danger block', type: 'button', onclick: () => { draft.photo = null; draft.previewURL = null; draft.removePhoto = true; drawPhoto(); } }, 'Foto entfernen'));
+    };
+    const drawItems = () => {
+      clear(itemBox);
+      const its = draft.itemIds.map(x => getItem(x)).filter(Boolean);
+      if (its.length) itemBox.append(h('div', { class: 'grid three', style: 'margin-bottom:14px' }, its.map(it => h('div', { class: 'tilebox' }, itemTile(it, { noSub: true, onClick: () => openItemDetail(it.id) }), h('button', { class: 'rm', type: 'button', 'aria-label': it.name + ' entfernen', onclick: () => { draft.itemIds = draft.itemIds.filter(x => x !== it.id); drawItems(); } }, h('span', null, icon('x', 14)))))));
+      else itemBox.append(h('p', { class: 'meta' }, 'Noch keine Teile gewählt. Mindestens ein Teil ist nötig.'));
+      itemBox.append(h('button', { class: 'btn block', type: 'button', onclick: () => openItemPicker(draft.itemIds, ids => { draft.itemIds = ids; drawItems(); }) }, icon('plus', 20), its.length ? 'Teile ändern' : 'Teile auswählen'));
+      upd();
+    };
+    root.append(
+      shead(src ? 'Variante' : 'Neue Variante', textBtn('Abbrechen', () => ctl.requestClose()), doneBtn),
+      h('div', { class: 'sbody' },
+        h('p', { class: 'meta', style: 'margin:0 0 12px' }, 'Variante von Zusatzschicht ' + (tier + 1) + '. Das Foto zeigt das ganze Outfit mit dieser Variante' + (tier === 1 ? '. Sind beide Zusatzschichten gewählt, erscheint dieses Foto.' : '.')),
+        heroHost, photoBtns,
+        h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Teile der Variante'), itemBox),
+        h('div', { class: 'field' }, h('label', { for: 'layer-name' }, 'Name (optional)'), nameInp, h('span', { class: 'hint' }, 'Ohne Namen heißt sie „Mit …“ und nennt die Teile.')),
+        src ? h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn danger block', type: 'button', onclick: () => { committed = false; opts.onDelete(draft.id); ctl.close(); } }, 'Variante entfernen')) : null));
+    drawPhoto(); drawItems();
+  }, { label: 'Variante' });
 }
 async function deleteOutfit(id) {
   const o = getOutfit(id); if (!o) return;
   const snap = snapshot();
-  const affected = S.trips.filter(t => t.days.some(d => d.includes(id))).length;
+  const affected = S.trips.filter(t => t.days.some(d => d.some(e => e.o === id))).length;
   S.outfits = S.outfits.filter(x => x.id !== id);
-  S.trips = S.trips.map(t => t.days.some(d => d.includes(id)) ? Object.assign({}, t, { days: t.days.map(d => d.filter(x => x !== id)) }) : t);
+  S.trips = S.trips.map(t => t.days.some(d => d.some(e => e.o === id)) ? Object.assign({}, t, { days: t.days.map(d => d.filter(e => e.o !== id)) }) : t);
   await persistDiff(snap);
   refreshAll();
   toast('„' + o.name + '“ gelöscht' + (affected ? ' (aus ' + affected + (affected === 1 ? ' Reise' : ' Reisen') + ' entfernt)' : ''), { label: 'Rückgängig', fn: () => undoTo(snap) });
 }
-function openItemPicker(selectedIds, onDone) {
+function openItemPicker(selectedIds, onDone, startCat) {
   const sel = new Set(selectedIds);
-  let q = '', cat = 'all';
+  let q = '', cat = startCat || 'all';
   openSheet((root, ctl) => {
     const host = h('div'), chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Nach Kategorie filtern' }), counter = h('span', { 'aria-live': 'polite' });
     const draw = () => {
@@ -1501,22 +1804,36 @@ function tripRange(t) {
   return n === 1 ? f(a, true) : f(a, a.getFullYear() !== b.getFullYear()) + ' – ' + f(b, true);
 }
 const tripEnd = t => addDaysKey(t.startDate, Math.max(1, t.days.length) - 1);
+function entryItems(o, layers) {
+  const ids = o.itemIds.filter(x => getItem(x));
+  (layers || []).filter(Boolean).forEach(l => l.itemIds.forEach(x => { if (getItem(x) && ids.indexOf(x) < 0) ids.push(x); }));
+  return ids;
+}
 function tripStats(t) {
-  const days = t.days.map(d => (Array.isArray(d) ? d : (d ? [d] : [])).map(id => getOutfit(id)).filter(Boolean));
-  const need = new Map(), noItems = [];
+  const days = t.days.map(d => normDay(d).map(e => {
+    const o = getOutfit(e.o); if (!o) return null;
+    const shoe = e.s && (o.shoeIds || []).includes(e.s) ? (getItem(e.s) || null) : null;
+    return { o, layers: [findLayer(o, e.l, 0), findLayer(o, e.l2, 1)], shoe };
+  }).filter(Boolean));
+  const need = new Map(), baseNeed = new Set(), noItems = []; let shoeMissing = 0;
   days.forEach(list => {
     const ofDay = new Set();
-    list.forEach(o => {
-      const ids = o.itemIds.filter(id => getItem(id));
-      if (!ids.length && noItems.indexOf(o) < 0) noItems.push(o);
-      ids.forEach(id => ofDay.add(id));
+    list.forEach(e => {
+      const ids = entryItems(e.o, e.layers);
+      if (e.shoe) { if (ids.indexOf(e.shoe.id) < 0) ids.push(e.shoe.id); baseNeed.add(e.shoe.id); } else shoeMissing++;
+      if (!ids.length && noItems.indexOf(e.o) < 0) noItems.push(e.o);
+      ids.forEach(x => ofDay.add(x));
+      e.o.itemIds.forEach(x => { if (getItem(x)) baseNeed.add(x); });
     });
-    ofDay.forEach(id => need.set(id, (need.get(id) || 0) + 1));
+    ofDay.forEach(x => need.set(x, (need.get(x) || 0) + 1));
   });
+  const layerOnly = new Set(); need.forEach((c, x) => { if (!baseNeed.has(x)) layerOnly.add(x); });
   const packed = t.packed || {};
-  let packedCount = 0; need.forEach((c, id) => { if (packed[id]) packedCount++; });
+  let packedCount = 0; need.forEach((c, x) => { if (packed[x]) packedCount++; });
   const filled = days.filter(l => l.length).length;
-  return { days, n: days.length, filled, open: days.length - filled, need, noItems, total: need.size, packedCount };
+  const qtyOv = t.qty || {}, qty = new Map(); let pieces = 0;
+  need.forEach((c, x) => { const it = getItem(x); const q = it && it.basic ? Math.max(1, Math.round(qtyOv[x] || c)) : 1; qty.set(x, q); pieces += q; });
+  return { days, n: days.length, filled, open: days.length - filled, need, noItems, total: need.size, packedCount, layerOnly, shoeMissing, qty, pieces };
 }
 function packGroups(st) {
   const byCat = new Map();
@@ -1533,23 +1850,29 @@ function packGroups(st) {
   });
   return groups;
 }
-function miniImg(o) {
+function miniImg(o, layers) {
+  const pv = photoLayer(layers || []);
+  if (pv && pv.thumb) return h('img', { src: pv.thumb, alt: '' });
   if (o.thumb) return h('img', { src: o.thumb, alt: '' });
   const it = o.itemIds.map(id => getItem(id)).find(Boolean);
   return it ? h('img', { src: thumbOf(it), alt: '' }) : null;
 }
-function dayCard(i, startDate, outfits, o) {
+function dayCard(i, startDate, entries, o) {
   const head = h('div', { class: 'dayhead' }, h('b', null, 'Tag ' + (i + 1)), startDate ? h('span', null, fmtShort(addDaysKey(startDate, i))) : null);
-  const rows = outfits.map(out => {
-    const n = out.itemIds.filter(id => getItem(id)).length;
-    const info = [h('span', { class: 'dimg' }, miniImg(out)), h('span', { class: 'dtxt' }, h('b', null, out.name), h('small', null, partWord(n) + (out.tags.length ? ' · ' + out.tags.join(', ') : '')))];
+  const rows = entries.map(en => {
+    const out = en.o, chosen = (en.layers || []).filter(Boolean);
+    const n = entryItems(out, en.layers).length;
+    const lab = chosen.map(l => layerLabel(out, l)).join(' + ');
+    const info = [h('span', { class: 'dimg' }, miniImg(out, en.layers)), h('span', { class: 'dtxt' }, h('b', null, out.name), h('small', null, partWord(n) + (lab ? ' · ' + lab : '') + (out.tags.length ? ' · ' + out.tags.join(', ') : '')), o.showShoes ? h('small', { class: 'shoeline' + (en.shoe ? '' : ' warn') }, en.shoe ? 'Schuhe: ' + en.shoe.name : 'Noch keine Schuhe gewählt') : null)];
     const main = o.onOpen
-      ? h('button', { class: 'orow-main', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + out.name, onclick: () => o.onOpen(out) }, ...info, icon('chev', 18))
+      ? h('button', { class: 'orow-main', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + out.name + (lab ? ', ' + lab : ''), onclick: () => o.onOpen(out) }, ...info, icon('chev', 18))
       : h('div', { class: 'orow-main' }, ...info);
-    return h('div', { class: 'orow' }, main, o.onRemove ? h('button', { class: 'rmbtn', type: 'button', 'aria-label': out.name + ' von Tag ' + (i + 1) + ' entfernen', onclick: () => o.onRemove(out) }, icon('x', 18)) : null);
+    const row = h('div', { class: 'orow' }, main, o.onRemove ? h('button', { class: 'rmbtn', type: 'button', 'aria-label': out.name + ' von Tag ' + (i + 1) + ' entfernen', onclick: () => o.onRemove(out) }, icon('x', 18)) : null);
+    const extra = o.extra ? o.extra(en) : null;
+    return extra ? h('div', null, row, extra) : row;
   });
   const add = o.addLabel ? h('button', { class: 'addbtn', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + o.addLabel, onclick: o.onAdd }, icon('plus', 18), o.addLabel) : null;
-  return h('div', { class: 'daycard' + (outfits.length ? '' : ' empty'), role: 'group', 'aria-label': 'Tag ' + (i + 1) }, head, rows, add);
+  return h('div', { class: 'daycard' + (entries.length ? '' : ' empty'), role: 'group', 'aria-label': 'Tag ' + (i + 1) }, head, rows, add);
 }
 function addTrip() {
   if (!S.outfits.length) { toast('Lege zuerst mindestens ein Outfit an.'); return; }
@@ -1558,15 +1881,16 @@ function addTrip() {
 function tripCard(t) {
   const st = tripStats(t);
   const seen = [], minis = [];
-  st.days.forEach(list => list.forEach(o => { if (seen.indexOf(o.id) < 0) { seen.push(o.id); minis.push(o); } }));
-  const status = st.open
-    ? h('span', { class: 'status warn' }, st.open + (st.open === 1 ? ' Tag offen' : ' Tage offen'))
-    : (st.total ? h('span', { class: 'status' }, st.packedCount + ' von ' + st.total + ' gepackt') : null);
+  st.days.forEach(list => list.forEach(e => { if (seen.indexOf(e.o.id) < 0) { seen.push(e.o.id); minis.push(e.o); } }));
+  const status = [];
+  if (st.open) status.push(h('span', { class: 'status warn' }, st.open + (st.open === 1 ? ' Tag offen' : ' Tage offen')));
+  if (st.shoeMissing) status.push(h('span', { class: 'status warn' }, 'Schuhe fehlen (' + st.shoeMissing + ')'));
+  if (!status.length && st.total) status.push(h('span', { class: 'status' }, st.packedCount + ' von ' + st.total + ' gepackt'));
   const range = tripRange(t);
   return h('button', { class: 'card-btn', type: 'button', 'aria-label': t.name + ', ' + (range ? range + ', ' : '') + dayWord(st.n), onclick: () => openTripDetail(t.id) },
-    h('span', { class: 'trip-top' }, h('span', { style: 'min-width:0' }, h('span', { class: 'trip-name' }, t.name), h('span', { class: 'trip-meta' }, (range ? range + ' · ' : '') + dayWord(st.n) + ' · ' + partWord(st.total))), icon('chev', 20)),
+    h('span', { class: 'trip-top' }, h('span', { style: 'min-width:0' }, h('span', { class: 'trip-name' }, t.name), h('span', { class: 'trip-meta' }, (range ? range + ' · ' : '') + dayWord(st.n) + ' · ' + partWord(st.pieces))), icon('chev', 20)),
     minis.length ? h('span', { class: 'thumbs' }, minis.slice(0, 5).map(o => h('span', { class: 'mini' }, miniImg(o))), minis.length > 5 ? h('span', { class: 'more' }, '+' + (minis.length - 5)) : null) : null,
-    status);
+    status.length ? h('span', { class: 'statusrow' }, status) : null);
 }
 function sortedTrips() {
   const today = dayKey(Date.now());
@@ -1618,19 +1942,35 @@ function openTripDetail(id) {
         await persistDiff(prev);
         renderRoot();
       };
-      const packRow = (it, cnt, checked) => {
+      const packRow = (it, cnt, checked, viaLayer) => {
         const cut = it.useCutout && it.thumbCut;
+        const q = st.qty.get(it.id) || 1;
+        const ov = it.basic && t.qty ? t.qty[it.id] : 0;
+        const sub = (cnt === 1 ? 'an 1 Tag' : 'an ' + cnt + ' Tagen') + (viaLayer ? ' · nur mit Zusatzschicht' : '') + (ov && ov !== cnt ? ' · angepasst (vorgeschlagen ' + cnt + ')' : '');
         const row = h('button', { class: 'packrow', type: 'button', role: 'checkbox', 'aria-checked': String(!!checked), onclick: () => toggle(it.id, row) },
           h('span', { class: 'box' }, icon('check', 18)),
           h('span', { class: 'pimg' }, h('img', { src: thumbOf(it), alt: '', class: cut ? 'cut' : 'photo' })),
-          h('span', { class: 'ptxt' }, h('b', null, it.name), h('small', null, cnt === 1 ? 'an 1 Tag' : 'an ' + cnt + ' Tagen')));
-        return row;
+          h('span', { class: 'ptxt' }, h('b', null, (it.basic ? q + '× ' : '') + it.name), h('small', null, sub)));
+        if (!it.basic) return h('div', { class: 'packwrap' }, row);
+        const setQty = async delta => {
+          const cur = getTrip(id); if (!cur) return;
+          const next = Math.max(1, Math.min(99, q + delta));
+          const qv = Object.assign({}, cur.qty);
+          if (next === cnt) delete qv[it.id]; else qv[it.id] = next;
+          const prev = snapshot();
+          S.trips = upsert(S.trips, Object.assign({}, cur, { qty: qv }));
+          await persistDiff(prev);
+          const top = root.scrollTop; draw(); root.scrollTop = top; renderRoot();
+        };
+        return h('div', { class: 'packwrap' }, row, h('div', { class: 'qty' },
+          h('button', { type: 'button', 'aria-label': 'Ein Stück weniger: ' + it.name, disabled: q <= 1, onclick: () => setQty(-1) }, icon('minus', 18)),
+          h('button', { type: 'button', 'aria-label': 'Ein Stück mehr: ' + it.name, disabled: q >= 99, onclick: () => setQty(1) }, icon('plus', 18))));
       };
       const list = h('div');
       if (!st.total) list.append(h('p', { class: 'meta' }, st.filled ? 'Die gewählten Outfits enthalten keine Teile.' : 'Wähle für die Tage Outfits. Dann erscheint hier die Packliste.'));
       packGroups(st).forEach(g => {
         list.append(h('div', { class: 'grouphead' }, (g.cat ? g.cat.icon + ' ' + g.cat.name : 'Ohne Kategorie') + ' (' + g.list.length + ')'));
-        g.list.forEach(e => list.append(packRow(e.it, e.cnt, !!(t.packed && t.packed[e.it.id]))));
+        g.list.forEach(e => list.append(packRow(e.it, e.cnt, !!(t.packed && t.packed[e.it.id]), st.layerOnly.has(e.it.id))));
       });
       const resetBtn = st.packedCount ? h('div', { style: 'margin-top:14px' }, h('button', { class: 'btn block', type: 'button', onclick: async () => {
         const snap = snapshot(), cur = getTrip(id);
@@ -1640,14 +1980,15 @@ function openTripDetail(id) {
       } }, 'Abhaken zurücksetzen')) : null;
       const noItemsNote = st.noItems.length ? h('p', { class: 'meta', style: 'margin-top:12px' }, 'Ohne Teile hinterlegt: ' + st.noItems.map(o => '„' + o.name + '“').join(', ') + '. Dafür gibt es nichts zu packen.') : null;
       const openNote = st.open ? h('div', { class: 'notice' }, (st.open === 1 ? 'Für 1 Tag fehlt noch ein Outfit.' : 'Für ' + st.open + ' Tage fehlt jeweils noch ein Outfit.') + ' Die Packliste ist erst vollständig, wenn alle Tage ein Outfit haben.', h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openTripEdit({ id }) }, 'Outfits ergänzen'))) : null;
-      const plan = st.days.map((list2, i) => dayCard(i, t.startDate, list2, { onOpen: out => openOutfitDetail(out.id), addLabel: list2.length ? null : 'Outfit fehlt – tippen zum Wählen', onAdd: () => openTripEdit({ id }) }));
+      const shoeNote = st.shoeMissing ? h('div', { class: 'notice' }, (st.shoeMissing === 1 ? 'Für 1 Outfit ist noch kein Paar Schuhe gewählt.' : 'Für ' + st.shoeMissing + ' Outfits sind noch keine Schuhe gewählt.'), h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openTripEdit({ id }) }, 'Schuhe wählen'))) : null;
+      const plan = st.days.map((list2, i) => dayCard(i, t.startDate, list2, { showShoes: true, onOpen: out => openOutfitDetail(out.id), addLabel: list2.length ? null : 'Outfit fehlt – tippen zum Wählen', onAdd: () => openTripEdit({ id }) }));
       const range = tripRange(t);
       root.append(
         shead(t.name, backBtn(ctl), textBtn('Bearbeiten', () => openTripEdit({ id }), true)),
         h('div', { class: 'sbody' },
           h('h1', { class: 'h1' }, t.name),
-          h('p', { class: 'meta' }, (range ? range + ' · ' : '') + dayWord(st.n) + ' · ' + partWord(st.total) + ' einpacken'),
-          openNote,
+          h('p', { class: 'meta' }, (range ? range + ' · ' : '') + dayWord(st.n) + ' · ' + partWord(st.pieces) + ' einpacken'),
+          openNote, shoeNote,
           h('div', { class: 'sec' }, h('span', null, 'Packliste'), prog),
           list, noItemsNote, resetBtn,
           h('div', { class: 'sec' }, h('span', null, 'Tagesplan')),
@@ -1690,16 +2031,26 @@ function openTripDayPicker(o) {
   }, { label: 'Outfits für den Tag wählen' });
 }
 
+function dayDiff(a, b) {
+  const pa = a.split('-').map(Number), pb = b.split('-').map(Number);
+  return Math.round((Date.UTC(pb[0], pb[1] - 1, pb[2]) - Date.UTC(pa[0], pa[1] - 1, pa[2])) / 864e5);
+}
+const isKey = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+const fmtLong = k => fmtShort(k) + parseKey(k).getFullYear();
 function openTripEdit(opts) {
   const existing = opts.id ? getTrip(opts.id) : null;
   if (opts.id && !existing) return;
+  const n0 = existing ? Math.max(1, Math.min(MAX_DAYS, existing.days.length)) : 3;
+  const start0 = existing && existing.startDate ? existing.startDate : dayKey(Date.now());
   const draft = {
     name: existing ? existing.name : '',
-    startDate: existing ? existing.startDate : null,
-    n: existing ? Math.max(1, Math.min(MAX_DAYS, existing.days.length)) : 3,
-    days: existing ? existing.days.map(d => d.filter(id => getOutfit(id))) : []
+    startDate: start0, endDate: addDaysKey(start0, n0 - 1), n: n0,
+    legacy: !!(existing && !existing.startDate),
+    byDate: {}   // Datum → Outfit-IDs. Pläne bleiben an ihrem Datum, auch wenn der Zeitraum sich ändert.
   };
-  const daysNow = () => Array.from({ length: draft.n }, (_, i) => (draft.days[i] || []).slice());
+  if (existing) existing.days.forEach((d, i) => { const es = d.filter(e => getOutfit(e.o)); if (es.length) draft.byDate[addDaysKey(start0, i)] = es.map(e => ({ o: e.o, l: e.l, l2: e.l2, s: e.s })); });
+  const keyOf = i => addDaysKey(draft.startDate, i);
+  const daysNow = () => Array.from({ length: draft.n }, (_, i) => (draft.byDate[keyOf(i)] || []).map(e => ({ o: e.o, l: e.l || null, l2: e.l2 || null, s: e.s || null })));
   const sig = () => JSON.stringify([draft.name, draft.startDate, draft.n, daysNow()]);
   const initial = sig();
   let saving = false;
@@ -1707,46 +2058,111 @@ function openTripEdit(opts) {
     const nameInp = h('input', { class: 'input', id: 'trip-name', type: 'text', value: draft.name, placeholder: 'z. B. Wochenende in Hamburg', enterkeyhint: 'done', autocomplete: 'off', maxlength: '50' });
     nameInp.addEventListener('input', () => { draft.name = nameInp.value; });
     nameInp.addEventListener('keydown', e => { if (e.key === 'Enter') nameInp.blur(); });
-    const dateInp = h('input', { class: 'input', id: 'trip-start', type: 'date', value: draft.startDate || '' });
+    const startInp = h('input', { class: 'input', id: 'trip-start', type: 'date', value: draft.startDate });
+    const endInp = h('input', { class: 'input', id: 'trip-end', type: 'date', value: draft.endDate, min: draft.startDate, max: addDaysKey(draft.startDate, MAX_DAYS - 1) });
     const dateInfo = h('p', { class: 'meta', 'aria-live': 'polite', style: 'margin:0' });
-    const dateClear = h('button', { class: 'btn', type: 'button', hidden: !draft.startDate, onclick: () => { draft.startDate = null; dateInp.value = ''; drawDays(); } }, 'Datum entfernen');
-    const onDate = () => { draft.startDate = /^\d{4}-\d{2}-\d{2}$/.test(dateInp.value) ? dateInp.value : null; drawDays(); };
-    dateInp.addEventListener('input', onDate); dateInp.addEventListener('change', onDate);
-    const minus = h('button', { type: 'button', 'aria-label': 'Einen Tag weniger', onclick: () => setN(draft.n - 1) }, icon('minus', 22));
-    const plus = h('button', { type: 'button', 'aria-label': 'Einen Tag mehr', onclick: () => setN(draft.n + 1) }, icon('plus', 22));
-    const numInp = h('input', { type: 'number', inputmode: 'numeric', min: '1', max: String(MAX_DAYS), value: String(draft.n), 'aria-label': 'Anzahl Tage' });
+    const note = h('p', { class: 'hint', role: 'status', style: 'margin:4px 0 0' });
+    const outNote = h('p', { class: 'hint', role: 'status', style: 'margin:4px 0 0' });
     const progLine = h('p', { class: 'meta', 'aria-live': 'polite', style: 'margin:0 0 10px' });
     const daysHost = h('div');
     const prevLine = h('p', { class: 'meta', 'aria-live': 'polite', style: 'margin:4px 0 0' });
+    const shoeLine = h('p', { class: 'shoeline warn', 'aria-live': 'polite', style: 'margin:0 0 10px' });
     const saveBtn = h('button', { class: 'tbtn r', type: 'button', onclick: () => save() }, 'Sichern');
     ctl.guard = async () => { if (saving) return false; if (sig() === initial) return true; return confirmDialog({ title: 'Änderungen verwerfen?', body: 'Deine Eingaben gehen verloren.', confirmLabel: 'Verwerfen', cancelLabel: 'Weiter bearbeiten', danger: true }); };
     const upd = () => { saveBtn.disabled = saving; saveBtn.textContent = saving ? 'Sichert …' : 'Sichern'; };
+    const syncDates = () => {
+      startInp.value = draft.startDate; endInp.value = draft.endDate;
+      endInp.min = draft.startDate; endInp.max = addDaysKey(draft.startDate, MAX_DAYS - 1);
+    };
+    // Wirkung einer Wahl auf die Zahl der Stücke (Basics zählen pro Tag, gleiche Teile am selben Tag nur einmal)
+    const piecesWith = (i, outId, patch) => tripStats({ days: daysNow().map((d, di) => di === i ? d.map(e => e.o === outId ? Object.assign({}, e, patch) : e) : d), packed: {}, qty: {} }).pieces;
+    const impactLabel = (i, outId, basePatch, optPatch) => { const diff = piecesWith(i, outId, optPatch) - piecesWith(i, outId, basePatch); return diff > 0 ? '+' + partWord(diff) : 'schon dabei'; };
+    // Pro Outfit und Tag je Zusatzschicht eine Variante wählen; zeigt, was die Wahl zur Packliste beiträgt
+    const layerChips = (i, en) => {
+      const layers = en.o.layers || [];
+      if (!layers.length) return [];
+      const mk = t => {
+        const list = layers.filter(l => l.tier === t);
+        if (!list.length) return null;
+        const patch = lid => t === 0 ? { l: lid } : { l2: lid };
+        const setLayer = lid => { draft.byDate[keyOf(i)] = (draft.byDate[keyOf(i)] || []).map(e => e.o === en.o.id ? Object.assign({}, e, patch(lid)) : e); drawDays(); };
+        const impact = l => impactLabel(i, en.o.id, patch(null), patch(l.id));
+        const box = h('div', { class: 'chips wrap', role: 'group', 'aria-label': tierName(en.o, t) + ' für ' + en.o.name + ' an Tag ' + (i + 1) });
+        box.append(chipBtn('Ohne', !en.layers[t], () => setLayer(null)));
+        list.forEach(l => box.append(chipBtn(layerLabel(en.o, l) + ' · ' + impact(l), !!en.layers[t] && en.layers[t].id === l.id, () => setLayer(l.id))));
+        return h('div', { class: 'tierrow' }, h('span', { class: 'tierlabel' }, tierName(en.o, t)), box);
+      };
+      return [mk(0), mk(1)].filter(Boolean);
+    };
+    // Schuhe zum Outfit: optional wählen; Hinweis, solange keine gewählt sind
+    const shoeRow = (i, en) => {
+      const shoes = (en.o.shoeIds || []).map(x => getItem(x)).filter(Boolean);
+      const wrap = h('div', { class: 'tierrow' }, h('span', { class: 'tierlabel' }, 'Schuhe'));
+      if (!shoes.length) {
+        wrap.append(h('p', { class: 'shoeline warn' }, 'Noch keine Schuhe gewählt'), h('button', { class: 'btn', type: 'button', onclick: () => openOutfitEdit({ id: en.o.id }) }, 'Schuhe zum Outfit hinzufügen'));
+        return wrap;
+      }
+      const setShoe = sid => { draft.byDate[keyOf(i)] = (draft.byDate[keyOf(i)] || []).map(e => e.o === en.o.id ? Object.assign({}, e, { s: sid }) : e); drawDays(); };
+      const impact = it => impactLabel(i, en.o.id, { s: null }, { s: it.id });
+      const box = h('div', { class: 'chips wrap', role: 'group', 'aria-label': 'Schuhe für ' + en.o.name + ' an Tag ' + (i + 1) });
+      box.append(chipBtn('Keine', !en.shoe, () => setShoe(null)));
+      shoes.forEach(it => box.append(chipBtn(it.name + ' · ' + impact(it), !!en.shoe && en.shoe.id === it.id, () => setShoe(it.id))));
+      wrap.append(box);
+      if (!en.shoe) wrap.append(h('p', { class: 'shoeline warn' }, 'Noch keine Schuhe gewählt'));
+      return wrap;
+    };
     const drawDays = () => {
       clear(daysHost);
       for (let i = 0; i < draft.n; i++) {
-        const list = (draft.days[i] || []).map(id => getOutfit(id)).filter(Boolean);
+        const raw = draft.byDate[keyOf(i)] || [];
+        const list = raw.map(e => { const o = getOutfit(e.o); return o ? { o, layers: [findLayer(o, e.l, 0), findLayer(o, e.l2, 1)], shoe: (e.s && (o.shoeIds || []).includes(e.s)) ? (getItem(e.s) || null) : null } : null; }).filter(Boolean);
         daysHost.append(dayCard(i, draft.startDate, list, {
-          onRemove: out => { draft.days[i] = (draft.days[i] || []).filter(x => x !== out.id); drawDays(); },
+          onRemove: out => { draft.byDate[keyOf(i)] = raw.filter(e => e.o !== out.id); drawDays(); },
+          extra: en => { const parts = [].concat(layerChips(i, en), shoeRow(i, en)); return h('div', { class: 'lchips' }, parts); },
           addLabel: list.length ? 'Outfits ändern' : 'Outfit wählen',
           onAdd: () => pickDay(i)
         }));
       }
-      const st = tripStats({ days: daysNow(), packed: {} });
+      const st = tripStats({ days: daysNow(), packed: {}, qty: existing ? existing.qty : {} });
       progLine.textContent = st.filled + ' von ' + (draft.n === 1 ? '1 Tag' : draft.n + ' Tagen') + ' geplant';
-      prevLine.textContent = st.total ? 'Das ergibt ' + partWord(st.total) + ' zum Einpacken.' : '';
-      minus.disabled = draft.n <= 1; plus.disabled = draft.n >= MAX_DAYS;
-      dateClear.hidden = !draft.startDate;
-      dateInfo.textContent = draft.startDate ? (draft.n === 1 ? fmtShort(draft.startDate) : 'Von ' + fmtShort(draft.startDate) + ' bis ' + fmtShort(addDaysKey(draft.startDate, draft.n - 1))) : '';
+      shoeLine.textContent = st.shoeMissing ? (st.shoeMissing === 1 ? 'Für 1 Outfit ist noch kein Paar Schuhe gewählt.' : 'Für ' + st.shoeMissing + ' Outfits sind noch keine Schuhe gewählt.') : '';
+      prevLine.textContent = st.pieces ? 'Das ergibt ' + partWord(st.pieces) + ' zum Einpacken.' : '';
+      const outside = Object.keys(draft.byDate).filter(k => (k < draft.startDate || k > draft.endDate) && draft.byDate[k].length).length;
+      outNote.textContent = outside ? 'Für ' + (outside === 1 ? '1 Tag' : outside + ' Tage') + ' außerhalb der Reisedaten sind noch Outfits vorgemerkt. Sie kommen zurück, wenn du den Zeitraum wieder erweiterst.' : '';
+      const sameYear = parseKey(draft.startDate).getFullYear() === parseKey(draft.endDate).getFullYear();
+      dateInfo.textContent = dayWord(draft.n) + ' · ' + (draft.n === 1 ? fmtLong(draft.startDate) : (sameYear ? fmtShort(draft.startDate) : fmtLong(draft.startDate)) + ' bis ' + fmtLong(draft.endDate));
     };
-    const setN = v => { v = Math.max(1, Math.min(MAX_DAYS, v | 0)); draft.n = v; numInp.value = String(v); drawDays(); };
-    numInp.addEventListener('input', () => { const v = parseInt(numInp.value, 10); if (v >= 1 && v <= MAX_DAYS) { draft.n = v; drawDays(); } });
-    numInp.addEventListener('change', () => setN(parseInt(numInp.value, 10) || draft.n));
-    numInp.addEventListener('blur', () => setN(parseInt(numInp.value, 10) || draft.n));
+    // Beginn und Ende sind unabhängig: Die Länge ergibt sich immer aus beiden Daten, Outfits bleiben an ihrem Datum.
+    const reanchor = (oldS, oldE, newS, newE) => {
+      if (newE >= oldS && newS <= oldE) return;   // Zeiträume überschneiden sich: nichts verschieben
+      const shift = dayDiff(oldS, newS), moved = {};   // ganze Reise verlegt: Pläne wandern mit
+      Object.keys(draft.byDate).forEach(k => { moved[addDaysKey(k, shift)] = draft.byDate[k]; });
+      draft.byDate = moved;
+    };
+    const onStart = () => {
+      if (!isKey(startInp.value)) { startInp.value = draft.startDate; note.textContent = 'Bitte wähle ein Beginn-Datum.'; return; }
+      const oldS = draft.startDate, oldE = draft.endDate;
+      const s = startInp.value; let e = oldE, msg = '', d = dayDiff(s, e);
+      // Passt das Ende nicht mehr zum neuen Beginn (davor oder mehr als 60 Tage entfernt), wird die Reise verlegt.
+      if (d < 0 || d > MAX_DAYS - 1) { reanchor(oldS, oldE, s, s); e = s; d = 0; msg = 'Das Ende passte nicht mehr zum neuen Beginn und wurde auf den Beginn gesetzt. Passe es bei Bedarf an.'; }
+      draft.startDate = s; draft.endDate = e; draft.n = d + 1; note.textContent = msg; syncDates(); drawDays();
+    };
+    const onEnd = () => {
+      if (!isKey(endInp.value)) { endInp.value = draft.endDate; note.textContent = 'Bitte wähle ein Ende-Datum.'; return; }
+      let e = endInp.value, d = dayDiff(draft.startDate, e), msg = '';
+      if (d < 0) { d = 0; e = draft.startDate; msg = 'Das Ende kann nicht vor dem Beginn liegen. Es wurde auf den Beginn gesetzt.'; }
+      if (d > MAX_DAYS - 1) { d = MAX_DAYS - 1; e = addDaysKey(draft.startDate, d); msg = 'Eine Reise kann höchstens ' + MAX_DAYS + ' Tage dauern. Das Ende wurde angepasst.'; }
+      draft.endDate = e; draft.n = d + 1; note.textContent = msg; syncDates(); drawDays();
+    };
+    startInp.addEventListener('change', onStart);
+    endInp.addEventListener('change', onEnd);
     const pickDay = i => {
-      let later = 0; for (let j = i + 1; j < draft.n; j++) if (!(draft.days[j] || []).length) later++;
-      openTripDayPicker({ day: i, startDate: draft.startDate, selected: (draft.days[i] || []).slice(), laterEmpty: later, onDone: (ids, fillRest) => {
-        draft.days[i] = ids;
-        if (ids.length && fillRest) for (let j = i + 1; j < draft.n; j++) if (!(draft.days[j] || []).length) draft.days[j] = ids.slice();
+      let later = 0; for (let j = i + 1; j < draft.n; j++) if (!(draft.byDate[keyOf(j)] || []).length) later++;
+      openTripDayPicker({ day: i, startDate: draft.startDate, selected: (draft.byDate[keyOf(i)] || []).map(e => e.o), laterEmpty: later, onDone: (ids, fillRest) => {
+        const cur = draft.byDate[keyOf(i)] || [];
+        const entries = ids.map(id => cur.find(e => e.o === id) || { o: id, l: null, l2: null, s: null });
+        draft.byDate[keyOf(i)] = entries;
+        if (entries.length && fillRest) for (let j = i + 1; j < draft.n; j++) if (!(draft.byDate[keyOf(j)] || []).length) draft.byDate[keyOf(j)] = entries.map(e => ({ o: e.o, l: e.l || null, l2: e.l2 || null, s: e.s || null }));
         drawDays();
       } });
     };
@@ -1757,7 +2173,7 @@ function openTripEdit(opts) {
         const id = existing ? existing.id : uid();
         const rec = Object.assign({}, existing || {}, {
           id, name: draft.name.trim() || (existing ? existing.name : 'Reise ' + (S.trips.length + 1)),
-          startDate: draft.startDate || null,
+          startDate: draft.startDate,
           days: daysNow(), createdAt: existing ? existing.createdAt : Date.now(), packed: existing ? (existing.packed || {}) : {}
         });
         const prev = snapshot();
@@ -1772,12 +2188,18 @@ function openTripEdit(opts) {
       shead(existing ? 'Reise bearbeiten' : 'Neue Reise', textBtn('Abbrechen', () => ctl.requestClose()), saveBtn),
       h('div', { class: 'sbody' },
         h('div', { class: 'field' }, h('label', { for: 'trip-name' }, 'Name (optional)'), nameInp),
-        h('div', { class: 'field' }, h('label', { for: 'trip-start' }, 'Reisebeginn (optional)'), dateInp, dateInfo, dateClear, h('span', { class: 'hint' }, 'Mit Datum siehst du bei jedem Tag den Wochentag und den Zeitraum der Reise.')),
-        h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Anzahl Tage'), h('div', { class: 'stepper' }, minus, numInp, plus)),
+        draft.legacy ? h('div', { class: 'notice' }, 'Für diese Reise war noch kein Datum hinterlegt. Als Beginn ist das heutige Datum eingetragen. Passe Beginn und Ende an.') : null,
+        h('div', { class: 'field' },
+          h('div', { class: 'datepair' },
+            h('div', { style: 'display:grid;gap:6px;min-width:0' }, h('label', { for: 'trip-start', style: 'font-weight:600;font-size:15px' }, 'Reisebeginn'), startInp),
+            h('div', { style: 'display:grid;gap:6px;min-width:0' }, h('label', { for: 'trip-end', style: 'font-weight:600;font-size:15px' }, 'Reiseende'), endInp)),
+          dateInfo, note, outNote,
+          h('span', { class: 'hint' }, 'Aus Beginn und Ende ergeben sich die Tage. Änderst du die Daten, bleiben die Outfits an ihrem Datum.')),
         h('div', { class: 'sec', style: 'margin-top:4px' }, h('span', null, 'Outfits pro Tag')),
-        progLine, daysHost, prevLine,
+        progLine, shoeLine, daysHost, prevLine,
         h('p', { class: 'meta', style: 'margin-top:10px' }, 'Pro Tag sind mehrere Outfits möglich, zum Beispiel für Arbeit und Abend. Dasselbe Outfit darfst du an mehreren Tagen verwenden.'),
         existing ? h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn danger block', type: 'button', onclick: async () => { const closed = await ctl.requestClose(); if (closed) deleteTrip(existing.id); } }, 'Reise löschen')) : null));
+    ctl.render = drawDays;
     drawDays(); upd();
   }, { label: existing ? 'Reise bearbeiten' : 'Neue Reise' });
 }
@@ -1804,16 +2226,33 @@ async function migrateData() {
   while (v < SCHEMA_VERSION) { v++; if (DATA_MIGRATIONS[v]) await DATA_MIGRATIONS[v](); }
   if (!Store.locked && (from !== SCHEMA_VERSION || (await Store.get('meta', 'schemaVersion')) == null)) await Store.put('meta', 'schemaVersion', SCHEMA_VERSION);
 }
-const normItem = i => Object.assign({ name: 'Teil', categoryId: null, createdAt: Date.now(), useCutout: false, hasCut: false, strength: 50, thumbOrig: '', thumbCut: null }, i);
-const normDay = d => Array.isArray(d) ? Array.from(new Set(d.filter(x => typeof x === 'string' && x))) : (typeof d === 'string' && d ? [d] : []);
+const normItem = i => Object.assign({ name: 'Teil', categoryId: null, createdAt: Date.now(), useCutout: false, hasCut: false, strength: 50, thumbOrig: '', thumbCut: null, basic: false }, i);
+const normDay = d => {
+  const arr = Array.isArray(d) ? d : (typeof d === 'string' && d ? [d] : []);
+  const seen = new Set(), out = [];
+  arr.forEach(x => {
+    const e = typeof x === 'string' ? { o: x, l: null, l2: null, s: null } : (x && typeof x.o === 'string' ? { o: x.o, l: typeof x.l === 'string' ? x.l : null, l2: typeof x.l2 === 'string' ? x.l2 : null, s: typeof x.s === 'string' ? x.s : null } : null);
+    if (e && e.o && !seen.has(e.o)) { seen.add(e.o); out.push(e); }
+  });
+  return out;
+};
 const normTrip = t => {
-  const r = Object.assign({ name: 'Reise', days: [], packed: {}, startDate: null, createdAt: Date.now() }, t);
+  const r = Object.assign({ name: 'Reise', days: [], packed: {}, qty: {}, startDate: null, createdAt: Date.now() }, t);
+  const q = (r.qty && typeof r.qty === 'object') ? r.qty : {}; r.qty = {};
+  Object.keys(q).forEach(k => { const n = Math.round(Number(q[k])); if (n >= 1) r.qty[k] = Math.min(99, n); });
   r.days = (Array.isArray(r.days) ? r.days : []).map(normDay);
   r.packed = (r.packed && typeof r.packed === 'object') ? r.packed : {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(r.startDate || '')) r.startDate = null;
   return r;
 };
-const normOutfit = o => Object.assign({ name: 'Outfit', tags: [], itemIds: [], createdAt: Date.now(), thumb: null, hasPhoto: false }, o);
+const normOutfit = o => {
+  const r = Object.assign({ name: 'Outfit', tags: [], itemIds: [], createdAt: Date.now(), thumb: null, hasPhoto: false, layers: [], tierNames: ['', ''], shoeIds: [] }, o);
+  r.shoeIds = Array.isArray(r.shoeIds) ? Array.from(new Set(r.shoeIds.filter(x => typeof x === 'string' && x))) : [];
+  r.layers = (Array.isArray(r.layers) ? r.layers : []).filter(l => l && l.id).map(l => Object.assign({ name: '', itemIds: [], hasPhoto: false, thumb: null }, l, { tier: l.tier === 1 ? 1 : 0 }));
+  const tn = Array.isArray(r.tierNames) ? r.tierNames : [];
+  r.tierNames = [String(tn[0] || ''), String(tn[1] || '')];
+  return r;
+};
 async function boot() {
   await Store.init();
   try {
@@ -1827,10 +2266,11 @@ async function boot() {
     S.settings = (await Store.get('meta', 'settings')) || {};
     if (!Store.locked) {
       // Nur Fotos löschen, die eindeutig zu nicht mehr vorhandenen Einträgen gehören. Unbekannte Schlüssel bleiben unberührt.
-      const ids = new Set(S.items.map(i => i.id)), oids = new Set(S.outfits.map(o => o.id));
+      const ids = new Set(S.items.map(i => i.id));
       (await Store.keys('photos')).forEach(k => {
-        const m = /^item:(.+):(orig|cut)$/.exec(String(k)), o = /^outfit:(.+)$/.exec(String(k));
-        if ((m && !ids.has(m[1])) || (o && !oids.has(o[1]))) Store.del('photos', k).catch(() => {});
+        const m = /^item:(.+):(orig|cut)$/.exec(String(k)), o = /^outfit:([^:]+)(?::layer:(.+))?$/.exec(String(k));
+        const ofit = o ? S.outfits.find(x => x.id === o[1]) : null;
+        if ((m && !ids.has(m[1])) || (o && (!ofit || (o[2] && !(ofit.layers || []).some(l => l.id === o[2]))))) Store.del('photos', k).catch(() => {});
       });
     }
   } catch (e) { console.error(e); S.storageError = true; if (!S.cats.length) S.cats = STD_CATS.map(c => ({ id: c[0], name: c[1], icon: c[2] })); }
