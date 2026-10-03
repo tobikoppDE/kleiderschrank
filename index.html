@@ -76,7 +76,7 @@ button{cursor:pointer}
 .tilebox{position:relative;min-width:0}
 .tilebox .rm{position:absolute;top:2px;right:2px;width:44px;height:44px;border:0;background:none;display:grid;place-items:center}
 .tilebox .rm span{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center}
-.cover{display:grid;place-items:center;aspect-ratio:3/4;background:var(--tile);border-radius:16px;overflow:hidden}
+.cover{position:relative;display:grid;place-items:center;aspect-ratio:3/4;background:var(--tile);border-radius:16px;overflow:hidden}
 .cover img.photo{width:100%;height:100%;object-fit:cover}
 .mosaic{width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;padding:10px}
 .mosaic div{display:grid;place-items:center;min-height:0;min-width:0}
@@ -84,6 +84,55 @@ button{cursor:pointer}
 .mosaic img.cut{filter:drop-shadow(0 4px 4px var(--cut-shadow))}
 .mosaic img.photo{width:100%;height:100%;object-fit:cover;border-radius:8px}
 .noimg{color:var(--muted);text-align:center;padding:16px;font-size:14px}
+
+.tile.sel .cover{box-shadow:0 0 0 3px var(--accent)}
+/* Reisen */
+.card-btn{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:0 0 12px}
+.card-btn:active{transform:scale(.99)}
+.trip-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.trip-name{display:block;font:600 19px/1.25 var(--serif);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trip-meta{display:block;color:var(--muted);font-size:14px}
+.thumbs{display:flex;gap:6px;margin-top:10px;align-items:center}
+.thumbs .mini{width:40px;height:52px;border-radius:9px;background:var(--tile);overflow:hidden;display:grid;place-items:center}
+.thumbs .mini img{width:100%;height:100%;object-fit:cover}
+.thumbs .more{color:var(--muted);font-size:13px;padding-left:2px}
+.status{display:inline-block;margin-top:10px;padding:3px 11px;border-radius:999px;font-size:13px;font-weight:600;background:var(--tile)}
+.status.warn{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{flex:none;width:52px;height:52px;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.stepper button[disabled]{opacity:.4}
+.stepper input{width:84px;min-height:52px;text-align:center;font:600 24px var(--serif);border:1px solid var(--line);border-radius:14px;background:var(--surface);-moz-appearance:textfield}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.dimg{flex:none;width:46px;height:61px;border-radius:10px;background:var(--tile);overflow:hidden;display:grid;place-items:center}
+.dimg img{width:100%;height:100%;object-fit:cover}
+.dtxt{flex:1;min-width:0;text-align:left}
+.dtxt b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dtxt small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.daycard{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:10px 10px 10px;margin:0 0 12px}
+.daycard.empty{border-style:dashed;background:transparent}
+.dayhead{display:flex;align-items:baseline;gap:10px;margin:0 0 6px 6px}
+.dayhead b{font-size:15px}
+.dayhead span{color:var(--muted);font-size:14px}
+.orow{display:flex;align-items:center;gap:6px;margin:0 0 6px}
+.orow-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;min-height:72px;padding:5px 6px;border:0;background:none;text-align:left;border-radius:12px}
+button.orow-main:active{background:var(--tile)}
+.rmbtn{flex:none;width:44px;height:44px;border:0;background:none;display:grid;place-items:center;color:var(--muted)}
+.addbtn{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:0 12px;border:1px dashed var(--line);border-radius:12px;background:transparent;color:var(--accent);font-weight:600;text-align:left}
+.grouphead{margin:20px 0 2px;font:600 15px var(--sans);color:var(--muted)}
+.packrow{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:7px 2px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left}
+.packrow .box{flex:none;width:28px;height:28px;border-radius:9px;border:2px solid var(--muted);display:grid;place-items:center;color:var(--on-accent)}
+.packrow .box svg{opacity:0}
+.packrow[aria-checked="true"] .box{background:var(--accent);border-color:var(--accent)}
+.packrow[aria-checked="true"] .box svg{opacity:1}
+.packrow[aria-checked="true"] .ptxt b{text-decoration:line-through;opacity:.55}
+.packrow .pimg{flex:none;width:48px;height:60px;border-radius:10px;background:var(--tile);overflow:hidden;display:grid;place-items:center}
+.packrow .pimg img.cut{max-width:90%;max-height:90%;object-fit:contain;filter:drop-shadow(0 3px 3px var(--cut-shadow))}
+.packrow .pimg img.photo{width:100%;height:100%;object-fit:cover}
+.packrow .ptxt{flex:1;min-width:0}
+.packrow .ptxt b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.packrow .ptxt small{display:block;color:var(--muted)}
+.checkrow{display:flex;align-items:center;gap:12px;min-height:50px;margin:0 0 14px;padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.checkrow input{flex:none;width:22px;height:22px;accent-color:var(--accent)}
 
 /* Leerzustand, Banner, Karten */
 .empty{margin:48px auto;max-width:340px;text-align:center}
@@ -162,7 +211,7 @@ button{cursor:pointer}
 .iconpick button[aria-pressed="true"]{background:var(--tile);border-color:var(--ink);border-width:2px}
 
 /* Tabs, Toast, Busy */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--surface);border-top:1px solid var(--line)}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--surface);border-top:1px solid var(--line)}
 .tab{position:relative;display:grid;justify-items:center;align-content:center;gap:2px;min-height:var(--tabh);border:0;background:none;color:var(--muted);font-size:12px;font-weight:600}
 .tab[aria-current="page"]{color:var(--accent)}
 .tab .dot{position:absolute;top:8px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:var(--danger);border:2px solid var(--surface)}
@@ -212,6 +261,8 @@ const SVG_ICONS = {
   search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
   hanger: '<path d="M12 9V7.6a2.3 2.3 0 1 0-2.3-2.3"/><path d="M12 9l-8.2 6.2a1.2 1.2 0 0 0 .7 2.1h15a1.2 1.2 0 0 0 .7-2.1L12 9z"/>',
   shirt: '<path d="M8.5 4L3.5 7l2 3.6 2.2-1.2V20h8.6V9.4l2.2 1.2 2-3.6-5-3c-.5 1.5-1.9 2.4-3.5 2.4S9 5.5 8.5 4z"/>',
+  suitcase: '<rect x="3.5" y="8" width="17" height="11.5" rx="2"/><path d="M9 8V6.2A1.2 1.2 0 0 1 10.2 5h3.6A1.2 1.2 0 0 1 15 6.2V8M3.5 13h17"/>',
+  minus: '<path d="M5 12h14"/>',
   more: '<circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/>',
   camera: '<path d="M4 8.5h3l1.5-2.5h7L17 8.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>'
 };
@@ -247,19 +298,22 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* =====================================================================
    Speicher: IndexedDB mit Fallback auf Arbeitsspeicher
    ===================================================================== */
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.3';
 /* Update-sicherer Speicher. Regeln für zukünftige Änderungen:
    - DB_NAME niemals ändern, sonst sind die bestehenden Daten für die App unsichtbar.
    - Neue Stores/Indizes: DB_VERSION erhöhen und in onupgradeneeded ergänzen (vorhandene Stores bleiben unberührt).
    - Neues Datenformat: SCHEMA_VERSION erhöhen und eine Migration in DATA_MIGRATIONS eintragen. */
 const DB_NAME = 'kleiderschrank-v1';
-const DB_VERSION = 1;
-const SCHEMA_VERSION = 1;
-const STORES = { items: 'id', outfits: 'id', meta: null, photos: null };
-const DATA_MIGRATIONS = {};
+const DB_VERSION = 2;
+const SCHEMA_VERSION = 2;
+const STORES = { items: 'id', outfits: 'id', trips: 'id', meta: null, photos: null };
+const DATA_MIGRATIONS = {
+  // 2: Reisetage enthalten jetzt eine Liste von Outfits statt eines einzelnen (Version 1.2 → 1.3)
+  2: async () => { for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t)); }
+};
 const Store = {
   mode: 'idb', db: null, locked: null,
-  mem: { items: new Map(), outfits: new Map(), meta: new Map(), photos: new Map() },
+  mem: { items: new Map(), outfits: new Map(), trips: new Map(), meta: new Map(), photos: new Map() },
   async init() {
     const open = ver => new Promise((res, rej) => {
       const r = ver ? indexedDB.open(DB_NAME, ver) : indexedDB.open(DB_NAME);
@@ -314,7 +368,7 @@ const Store = {
   async put(store, key, val) {
     if (this.locked) throw new Error('Speicher gesperrt');
     if (this.mode === 'mem') { this.mem[store].set(key, val); return; }
-    const inline = store === 'items' || store === 'outfits';
+    const inline = !!STORES[store];
     return this._run(store, 'readwrite', s => inline ? s.put(val) : s.put(val, key));
   },
   async del(store, key) {
@@ -335,7 +389,7 @@ const STD_CATS = [
 const SEASONS = ['Frühling', 'Sommer', 'Herbst', 'Winter'];
 const ICONS = ['👔', '👕', '🧶', '👖', '🩳', '🧥', '🥼', '👗', '👚', '🧣', '🧤', '🧢', '🎩', '👒', '👟', '🥾', '👞', '🩴', '🧦', '🕶️', '⌚', '👜', '🎒', '💍'];
 const S = {
-  items: [], outfits: [], cats: [], settings: {}, ready: false, persisted: undefined,
+  items: [], outfits: [], trips: [], cats: [], settings: {}, ready: false, persisted: undefined,
   ui: { tab: 'closet', cat: 'all', q: '', tags: [], oq: '', bannerOn: false, busy: false },
   storageError: false
 };
@@ -356,7 +410,7 @@ async function persist(fn) {
     return false;
   }
 }
-const snapshot = () => ({ items: S.items, outfits: S.outfits, cats: S.cats });
+const snapshot = () => ({ items: S.items, outfits: S.outfits, cats: S.cats, trips: S.trips });
 async function persistDiff(prev) {
   return persist(async () => {
     const curI = new Map(S.items.map(x => [x.id, x]));
@@ -367,13 +421,17 @@ async function persistDiff(prev) {
     const prevO = new Map(prev.outfits.map(x => [x.id, x]));
     for (const p of prev.outfits) if (!curO.has(p.id)) await Store.del('outfits', p.id);
     for (const c of S.outfits) if (prevO.get(c.id) !== c) await Store.put('outfits', c.id, c);
+    const curT = new Map(S.trips.map(x => [x.id, x]));
+    const prevT = new Map((prev.trips || []).map(x => [x.id, x]));
+    for (const p of (prev.trips || [])) if (!curT.has(p.id)) await Store.del('trips', p.id);
+    for (const c of S.trips) if (prevT.get(c.id) !== c) await Store.put('trips', c.id, c);
     if (prev.cats !== S.cats) await Store.put('meta', 'cats', S.cats);
   });
 }
 async function saveSettings() { return persist(() => Store.put('meta', 'settings', S.settings)); }
 async function undoTo(snap) {
   const prev = snapshot();
-  S.items = snap.items; S.outfits = snap.outfits; S.cats = snap.cats;
+  S.items = snap.items; S.outfits = snap.outfits; S.cats = snap.cats; S.trips = snap.trips || [];
   await persistDiff(prev);
   refreshAll();
   toast('Wiederhergestellt');
@@ -719,7 +777,7 @@ async function createBackup() {
       parts.push((i ? ',' : '') + JSON.stringify(meta));
       setBusy('Backup wird erstellt …', ++n / total);
     }
-    parts.push(']}');
+    parts.push('],"trips":' + JSON.stringify(S.trips) + '}');
     const blob = new Blob(parts, { type: 'application/json' });
     const name = 'kleiderschrank-backup-' + dayKey(Date.now()) + '.json';
     hideBusy();
@@ -759,7 +817,7 @@ async function restoreFromFile(file) {
   if (data.version > 1) { toast('Das Backup stammt aus einer neueren Version der App.'); return; }
   const ok = await confirmDialog({
     title: 'Backup einspielen?',
-    body: data.items.length + ' Teile und ' + data.outfits.length + ' Outfits, gesichert ' + fmtWhen(data.exportedAt || Date.now()) + '. Vorhandene Einträge mit derselben Kennung werden aktualisiert, alles andere bleibt erhalten.',
+    body: data.items.length + ' Teile und ' + data.outfits.length + ' Outfits' + (Array.isArray(data.trips) && data.trips.length ? ' und ' + data.trips.length + (data.trips.length === 1 ? ' Reise' : ' Reisen') : '') + ', gesichert ' + fmtWhen(data.exportedAt || Date.now()) + '. Vorhandene Einträge mit derselben Kennung werden aktualisiert, alles andere bleibt erhalten.',
     confirmLabel: 'Einspielen'
   });
   if (!ok) return;
@@ -815,6 +873,10 @@ async function restoreFromFile(file) {
       } catch (e) { console.error(e); skipped++; }
       n++;
     }
+    for (const m of (Array.isArray(data.trips) ? data.trips : [])) {
+      if (!m || !m.id) continue;
+      try { const rec = normTrip(m); S.trips = upsert(S.trips, rec); await Store.put('trips', rec.id, rec); } catch (e) { console.error(e); skipped++; }
+    }
     await persist(() => Store.put('meta', 'cats', S.cats));
     hideBusy(); refreshAll();
     toast(skipped ? 'Eingespielt, ' + skipped + (skipped === 1 ? ' Eintrag' : ' Einträge') + ' übersprungen.' : 'Backup eingespielt.');
@@ -828,7 +890,7 @@ async function restoreFromFile(file) {
 const viewEl = () => document.getElementById('view');
 function renderTabs() {
   const tabs = document.getElementById('tabs'); clear(tabs);
-  const def = [['closet', 'Schrank', 'hanger'], ['outfits', 'Outfits', 'shirt'], ['more', 'Mehr', 'more']];
+  const def = [['closet', 'Schrank', 'hanger'], ['outfits', 'Outfits', 'shirt'], ['trips', 'Reisen', 'suitcase'], ['more', 'Mehr', 'more']];
   const due = backupInfo().due;
   def.forEach(([id, label, ic]) => tabs.append(h('button', { class: 'tab', type: 'button', 'aria-current': S.ui.tab === id ? 'page' : null, onclick: () => { if (S.ui.tab !== id) { S.ui.tab = id; renderRoot(); window.scrollTo(0, 0); } } },
     icon(ic, 24), label, (id === 'more' && due) ? h('span', { class: 'dot', role: 'img', 'aria-label': 'Backup empfohlen' }) : null)));
@@ -837,7 +899,7 @@ function renderRoot() {
   if (!S.ready) return;
   renderTabs();
   const v = clear(viewEl());
-  v.append(S.ui.tab === 'closet' ? viewCloset() : S.ui.tab === 'outfits' ? viewOutfits() : viewMore());
+  v.append(S.ui.tab === 'closet' ? viewCloset() : S.ui.tab === 'outfits' ? viewOutfits() : S.ui.tab === 'trips' ? viewTrips() : viewMore());
 }
 function refreshAll() { renderRoot(); sheets.slice().forEach(s => { if (s.render) s.render(); }); }
 
@@ -930,9 +992,9 @@ function outfitCover(o) {
   if (!its.length) return h('div', { class: 'noimg' }, 'Ohne Foto');
   return h('div', { class: 'mosaic' }, its.map(it => h('div', null, h('img', { src: thumbOf(it), alt: '', class: it.useCutout && it.thumbCut ? 'cut' : 'photo' }))));
 }
-function outfitCard(o, onClick) {
-  return h('button', { class: 'tile', type: 'button', 'aria-label': o.name + (o.tags.length ? ', ' + o.tags.join(', ') : ''), onclick: onClick },
-    h('span', { class: 'cover' }, outfitCover(o)),
+function outfitCard(o, onClick, selected) {
+  return h('button', { class: 'tile' + (selected ? ' sel' : ''), type: 'button', 'aria-pressed': selected == null ? null : String(!!selected), 'aria-label': o.name + (o.tags.length ? ', ' + o.tags.join(', ') : ''), onclick: onClick },
+    h('span', { class: 'cover' }, outfitCover(o), selected ? h('span', { class: 'badge' }, icon('check', 16)) : null),
     h('span', { class: 'tile-name' }, o.name),
     h('span', { class: 'tile-sub' }, o.itemIds.length + (o.itemIds.length === 1 ? ' Teil' : ' Teile') + (o.tags.length ? ' · ' + o.tags.join(', ') : '')));
 }
@@ -994,7 +1056,7 @@ function viewMore() {
     !standalone ? h('p', null, 'Tipp: Tippe in Safari auf „Teilen“ und dann auf „Zum Home-Bildschirm“. Als Home-Bildschirm-App bleiben die Daten länger erhalten.') : null));
   page.append(h('div', { class: 'card' },
     h('button', { class: 'row-link', type: 'button', onclick: openCategoryManager }, h('span', null, h('h3', { style: 'margin:0' }, 'Kategorien'), h('small', null, S.cats.length + (S.cats.length === 1 ? ' Kategorie' : ' Kategorien') + ' verwalten')), icon('chev', 20))));
-  page.append(h('p', { class: 'meta', style: 'text-align:center' }, S.items.length + (S.items.length === 1 ? ' Teil' : ' Teile') + ' · ' + S.outfits.length + (S.outfits.length === 1 ? ' Outfit' : ' Outfits') + ' · Version ' + APP_VERSION));
+  page.append(h('p', { class: 'meta', style: 'text-align:center' }, S.items.length + (S.items.length === 1 ? ' Teil' : ' Teile') + ' · ' + S.outfits.length + (S.outfits.length === 1 ? ' Outfit' : ' Outfits') + ' · ' + S.trips.length + (S.trips.length === 1 ? ' Reise' : ' Reisen') + ' · Version ' + APP_VERSION));
   return page;
 }
 
@@ -1316,10 +1378,12 @@ function openOutfitEdit(opts) {
 async function deleteOutfit(id) {
   const o = getOutfit(id); if (!o) return;
   const snap = snapshot();
+  const affected = S.trips.filter(t => t.days.some(d => d.includes(id))).length;
   S.outfits = S.outfits.filter(x => x.id !== id);
+  S.trips = S.trips.map(t => t.days.some(d => d.includes(id)) ? Object.assign({}, t, { days: t.days.map(d => d.filter(x => x !== id)) }) : t);
   await persistDiff(snap);
   refreshAll();
-  toast('„' + o.name + '“ gelöscht', { label: 'Rückgängig', fn: () => undoTo(snap) });
+  toast('„' + o.name + '“ gelöscht' + (affected ? ' (aus ' + affected + (affected === 1 ? ' Reise' : ' Reisen') + ' entfernt)' : ''), { label: 'Rückgängig', fn: () => undoTo(snap) });
 }
 function openItemPicker(selectedIds, onDone) {
   const sel = new Set(selectedIds);
@@ -1419,6 +1483,314 @@ function openCategoryEdit(o) {
 }
 
 /* =====================================================================
+   Reisen
+   ===================================================================== */
+const MAX_DAYS = 60;
+const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const getTrip = id => S.trips.find(x => x.id === id);
+const dayWord = n => n + (n === 1 ? ' Tag' : ' Tage');
+const partWord = n => n + (n === 1 ? ' Teil' : ' Teile');
+const parseKey = k => { const p = k.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+const addDaysKey = (k, n) => { const d = parseKey(k); d.setDate(d.getDate() + n); return dayKey(d.getTime()); };
+const fmtShort = k => { const d = parseKey(k); return WD[d.getDay()] + ' ' + d.getDate() + '.' + (d.getMonth() + 1) + '.'; };
+function tripRange(t) {
+  if (!t.startDate) return '';
+  const n = Math.max(1, t.days.length);
+  const a = parseKey(t.startDate), b = parseKey(addDaysKey(t.startDate, n - 1));
+  const f = (d, y) => d.getDate() + '.' + (d.getMonth() + 1) + '.' + (y ? d.getFullYear() : '');
+  return n === 1 ? f(a, true) : f(a, a.getFullYear() !== b.getFullYear()) + ' – ' + f(b, true);
+}
+const tripEnd = t => addDaysKey(t.startDate, Math.max(1, t.days.length) - 1);
+function tripStats(t) {
+  const days = t.days.map(d => (Array.isArray(d) ? d : (d ? [d] : [])).map(id => getOutfit(id)).filter(Boolean));
+  const need = new Map(), noItems = [];
+  days.forEach(list => {
+    const ofDay = new Set();
+    list.forEach(o => {
+      const ids = o.itemIds.filter(id => getItem(id));
+      if (!ids.length && noItems.indexOf(o) < 0) noItems.push(o);
+      ids.forEach(id => ofDay.add(id));
+    });
+    ofDay.forEach(id => need.set(id, (need.get(id) || 0) + 1));
+  });
+  const packed = t.packed || {};
+  let packedCount = 0; need.forEach((c, id) => { if (packed[id]) packedCount++; });
+  const filled = days.filter(l => l.length).length;
+  return { days, n: days.length, filled, open: days.length - filled, need, noItems, total: need.size, packedCount };
+}
+function packGroups(st) {
+  const byCat = new Map();
+  st.need.forEach((cnt, id) => {
+    const it = getItem(id), key = getCat(it.categoryId) ? it.categoryId : '_none';
+    if (!byCat.has(key)) byCat.set(key, []);
+    byCat.get(key).push({ it, cnt });
+  });
+  const groups = [];
+  S.cats.map(c => c.id).concat('_none').forEach(key => {
+    const list = byCat.get(key); if (!list) return;
+    list.sort((a, b) => a.it.name.localeCompare(b.it.name, 'de'));
+    groups.push({ cat: key === '_none' ? null : getCat(key), list });
+  });
+  return groups;
+}
+function miniImg(o) {
+  if (o.thumb) return h('img', { src: o.thumb, alt: '' });
+  const it = o.itemIds.map(id => getItem(id)).find(Boolean);
+  return it ? h('img', { src: thumbOf(it), alt: '' }) : null;
+}
+function dayCard(i, startDate, outfits, o) {
+  const head = h('div', { class: 'dayhead' }, h('b', null, 'Tag ' + (i + 1)), startDate ? h('span', null, fmtShort(addDaysKey(startDate, i))) : null);
+  const rows = outfits.map(out => {
+    const n = out.itemIds.filter(id => getItem(id)).length;
+    const info = [h('span', { class: 'dimg' }, miniImg(out)), h('span', { class: 'dtxt' }, h('b', null, out.name), h('small', null, partWord(n) + (out.tags.length ? ' · ' + out.tags.join(', ') : '')))];
+    const main = o.onOpen
+      ? h('button', { class: 'orow-main', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + out.name, onclick: () => o.onOpen(out) }, ...info, icon('chev', 18))
+      : h('div', { class: 'orow-main' }, ...info);
+    return h('div', { class: 'orow' }, main, o.onRemove ? h('button', { class: 'rmbtn', type: 'button', 'aria-label': out.name + ' von Tag ' + (i + 1) + ' entfernen', onclick: () => o.onRemove(out) }, icon('x', 18)) : null);
+  });
+  const add = o.addLabel ? h('button', { class: 'addbtn', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + o.addLabel, onclick: o.onAdd }, icon('plus', 18), o.addLabel) : null;
+  return h('div', { class: 'daycard' + (outfits.length ? '' : ' empty'), role: 'group', 'aria-label': 'Tag ' + (i + 1) }, head, rows, add);
+}
+function addTrip() {
+  if (!S.outfits.length) { toast('Lege zuerst mindestens ein Outfit an.'); return; }
+  openTripEdit({});
+}
+function tripCard(t) {
+  const st = tripStats(t);
+  const seen = [], minis = [];
+  st.days.forEach(list => list.forEach(o => { if (seen.indexOf(o.id) < 0) { seen.push(o.id); minis.push(o); } }));
+  const status = st.open
+    ? h('span', { class: 'status warn' }, st.open + (st.open === 1 ? ' Tag offen' : ' Tage offen'))
+    : (st.total ? h('span', { class: 'status' }, st.packedCount + ' von ' + st.total + ' gepackt') : null);
+  const range = tripRange(t);
+  return h('button', { class: 'card-btn', type: 'button', 'aria-label': t.name + ', ' + (range ? range + ', ' : '') + dayWord(st.n), onclick: () => openTripDetail(t.id) },
+    h('span', { class: 'trip-top' }, h('span', { style: 'min-width:0' }, h('span', { class: 'trip-name' }, t.name), h('span', { class: 'trip-meta' }, (range ? range + ' · ' : '') + dayWord(st.n) + ' · ' + partWord(st.total))), icon('chev', 20)),
+    minis.length ? h('span', { class: 'thumbs' }, minis.slice(0, 5).map(o => h('span', { class: 'mini' }, miniImg(o))), minis.length > 5 ? h('span', { class: 'more' }, '+' + (minis.length - 5)) : null) : null,
+    status);
+}
+function sortedTrips() {
+  const today = dayKey(Date.now());
+  const grp = t => !t.startDate ? 1 : (tripEnd(t) >= today ? 0 : 2);
+  return S.trips.slice().sort((a, b) => {
+    const ga = grp(a), gb = grp(b);
+    if (ga !== gb) return ga - gb;
+    if (ga === 0) return a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : b.createdAt - a.createdAt;
+    if (ga === 2) return a.startDate < b.startDate ? 1 : a.startDate > b.startDate ? -1 : b.createdAt - a.createdAt;
+    return b.createdAt - a.createdAt;
+  });
+}
+function viewTrips() {
+  const page = h('div', { class: 'page' });
+  page.append(topBar('Reisen', S.trips.length ? h('button', { class: 'pill-btn', type: 'button', onclick: addTrip }, icon('plus', 20), 'Reise') : h('span')));
+  page.append(...[storageWarning(), backupBanner()].filter(Boolean));
+  if (!S.trips.length) {
+    page.append(S.outfits.length
+      ? h('div', { class: 'empty' }, h('h2', null, 'Noch keine Reise'), h('p', null, 'Wähle die Anzahl der Tage und für jeden Tag ein oder mehrere Outfits. Danach siehst du, welche Teile du einpacken musst.'), h('button', { class: 'btn primary', type: 'button', onclick: addTrip }, icon('suitcase', 20), 'Erste Reise planen'))
+      : h('div', { class: 'empty' }, h('h2', null, 'Noch keine Reise'), h('p', null, 'Eine Reise besteht aus deinen Outfits. Lege zuerst ein Outfit an.'), h('button', { class: 'btn primary', type: 'button', onclick: () => { S.ui.tab = 'outfits'; renderRoot(); window.scrollTo(0, 0); } }, 'Zu den Outfits')));
+    return page;
+  }
+  const today = dayKey(Date.now()); let pastShown = false; const list = h('div');
+  sortedTrips().forEach(t => {
+    if (t.startDate && tripEnd(t) < today && !pastShown) { pastShown = true; list.append(h('div', { class: 'sec' }, h('span', null, 'Vergangene Reisen'))); }
+    list.append(tripCard(t));
+  });
+  page.append(list);
+  return page;
+}
+
+function openTripDetail(id) {
+  openSheet((root, ctl) => {
+    const draw = () => {
+      const t = getTrip(id);
+      if (!t) { ctl.close(); return; }
+      const st = tripStats(t);
+      clear(root);
+      const prog = h('span', { 'aria-live': 'polite' });
+      const updateProg = () => { const cur = getTrip(id); if (!cur) return; const s2 = tripStats(cur); prog.textContent = s2.total ? s2.packedCount + ' von ' + s2.total + ' gepackt' : ''; };
+      const toggle = async (itemId, row) => {
+        const cur = getTrip(id); if (!cur) return;
+        const packed = Object.assign({}, cur.packed);
+        if (packed[itemId]) delete packed[itemId]; else packed[itemId] = true;
+        const prev = snapshot();
+        S.trips = upsert(S.trips, Object.assign({}, cur, { packed }));
+        row.setAttribute('aria-checked', String(!!packed[itemId]));
+        updateProg();
+        await persistDiff(prev);
+        renderRoot();
+      };
+      const packRow = (it, cnt, checked) => {
+        const cut = it.useCutout && it.thumbCut;
+        const row = h('button', { class: 'packrow', type: 'button', role: 'checkbox', 'aria-checked': String(!!checked), onclick: () => toggle(it.id, row) },
+          h('span', { class: 'box' }, icon('check', 18)),
+          h('span', { class: 'pimg' }, h('img', { src: thumbOf(it), alt: '', class: cut ? 'cut' : 'photo' })),
+          h('span', { class: 'ptxt' }, h('b', null, it.name), h('small', null, cnt === 1 ? 'an 1 Tag' : 'an ' + cnt + ' Tagen')));
+        return row;
+      };
+      const list = h('div');
+      if (!st.total) list.append(h('p', { class: 'meta' }, st.filled ? 'Die gewählten Outfits enthalten keine Teile.' : 'Wähle für die Tage Outfits. Dann erscheint hier die Packliste.'));
+      packGroups(st).forEach(g => {
+        list.append(h('div', { class: 'grouphead' }, (g.cat ? g.cat.icon + ' ' + g.cat.name : 'Ohne Kategorie') + ' (' + g.list.length + ')'));
+        g.list.forEach(e => list.append(packRow(e.it, e.cnt, !!(t.packed && t.packed[e.it.id]))));
+      });
+      const resetBtn = st.packedCount ? h('div', { style: 'margin-top:14px' }, h('button', { class: 'btn block', type: 'button', onclick: async () => {
+        const snap = snapshot(), cur = getTrip(id);
+        S.trips = upsert(S.trips, Object.assign({}, cur, { packed: {} }));
+        await persistDiff(snap); refreshAll();
+        toast('Abhaken zurückgesetzt', { label: 'Rückgängig', fn: () => undoTo(snap) });
+      } }, 'Abhaken zurücksetzen')) : null;
+      const noItemsNote = st.noItems.length ? h('p', { class: 'meta', style: 'margin-top:12px' }, 'Ohne Teile hinterlegt: ' + st.noItems.map(o => '„' + o.name + '“').join(', ') + '. Dafür gibt es nichts zu packen.') : null;
+      const openNote = st.open ? h('div', { class: 'notice' }, (st.open === 1 ? 'Für 1 Tag fehlt noch ein Outfit.' : 'Für ' + st.open + ' Tage fehlt jeweils noch ein Outfit.') + ' Die Packliste ist erst vollständig, wenn alle Tage ein Outfit haben.', h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openTripEdit({ id }) }, 'Outfits ergänzen'))) : null;
+      const plan = st.days.map((list2, i) => dayCard(i, t.startDate, list2, { onOpen: out => openOutfitDetail(out.id), addLabel: list2.length ? null : 'Outfit fehlt – tippen zum Wählen', onAdd: () => openTripEdit({ id }) }));
+      const range = tripRange(t);
+      root.append(
+        shead(t.name, backBtn(ctl), textBtn('Bearbeiten', () => openTripEdit({ id }), true)),
+        h('div', { class: 'sbody' },
+          h('h1', { class: 'h1' }, t.name),
+          h('p', { class: 'meta' }, (range ? range + ' · ' : '') + dayWord(st.n) + ' · ' + partWord(st.total) + ' einpacken'),
+          openNote,
+          h('div', { class: 'sec' }, h('span', null, 'Packliste'), prog),
+          list, noItemsNote, resetBtn,
+          h('div', { class: 'sec' }, h('span', null, 'Tagesplan')),
+          h('div', null, plan)));
+      updateProg();
+    };
+    ctl.render = draw; draw();
+  }, { label: 'Reise' });
+}
+
+function openTripDayPicker(o) {
+  let q = '', tags = [];
+  const sel = o.selected.filter(id => getOutfit(id));
+  openSheet((root, ctl) => {
+    const host = h('div'), chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Nach Tags filtern' }), counter = h('span', { 'aria-live': 'polite' });
+    const fill = h('input', { type: 'checkbox', id: 'fill-rest' });
+    const draw = () => {
+      clear(host);
+      const ql = q.trim().toLowerCase();
+      const list = S.outfits.filter(x => tags.every(t => x.tags.includes(t)) && (!ql || x.name.toLowerCase().includes(ql) || x.tags.some(t => t.toLowerCase().includes(ql))));
+      if (!list.length) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:30px' }, 'Kein Outfit gefunden.'));
+      else host.append(h('div', { class: 'grid' }, list.map(x => outfitCard(x, () => { const k = sel.indexOf(x.id); if (k >= 0) sel.splice(k, 1); else sel.push(x.id); draw(); }, sel.includes(x.id)))));
+      counter.textContent = sel.length === 0 ? 'Kein Outfit gewählt' : sel.length + (sel.length === 1 ? ' Outfit gewählt' : ' Outfits gewählt');
+    };
+    const drawChips = () => {
+      clear(chips);
+      const all = allTags();
+      if (!all.length) { chips.style.display = 'none'; return; }
+      chips.append(chipBtn('Alle', !tags.length, () => { tags = []; drawChips(); draw(); }));
+      all.forEach(t => chips.append(chipBtn(t, tags.includes(t), () => { tags = tags.includes(t) ? tags.filter(x => x !== t) : tags.concat(t); drawChips(); draw(); })));
+    };
+    const fillRow = o.laterEmpty ? h('label', { class: 'checkrow', for: 'fill-rest' }, fill, h('span', null, 'Auswahl auch für alle folgenden leeren Tage übernehmen (' + o.laterEmpty + ')')) : null;
+    root.append(
+      shead('Tag ' + (o.day + 1), textBtn('Abbrechen', () => ctl.close()), textBtn('Fertig', () => { o.onDone(sel.slice(), !!fill.checked); ctl.close(); }, true)),
+      h('div', { class: 'sbody' }, ...[
+        h('p', { class: 'meta', style: 'margin:0 0 12px' }, 'Wähle ein oder mehrere Outfits für diesen Tag' + (o.startDate ? ' (' + fmtShort(addDaysKey(o.startDate, o.day)) + ')' : '') + '.'),
+        fillRow, searchBox('', 'Outfits durchsuchen', v => { q = v; draw(); }), chips, host].filter(Boolean)),
+      h('div', { class: 'sfoot' }, h('div', { class: 'inner', style: 'text-align:center;color:var(--muted)' }, counter)));
+    drawChips(); draw();
+  }, { label: 'Outfits für den Tag wählen' });
+}
+
+function openTripEdit(opts) {
+  const existing = opts.id ? getTrip(opts.id) : null;
+  if (opts.id && !existing) return;
+  const draft = {
+    name: existing ? existing.name : '',
+    startDate: existing ? existing.startDate : null,
+    n: existing ? Math.max(1, Math.min(MAX_DAYS, existing.days.length)) : 3,
+    days: existing ? existing.days.map(d => d.filter(id => getOutfit(id))) : []
+  };
+  const daysNow = () => Array.from({ length: draft.n }, (_, i) => (draft.days[i] || []).slice());
+  const sig = () => JSON.stringify([draft.name, draft.startDate, draft.n, daysNow()]);
+  const initial = sig();
+  let saving = false;
+  openSheet((root, ctl) => {
+    const nameInp = h('input', { class: 'input', id: 'trip-name', type: 'text', value: draft.name, placeholder: 'z. B. Wochenende in Hamburg', enterkeyhint: 'done', autocomplete: 'off', maxlength: '50' });
+    nameInp.addEventListener('input', () => { draft.name = nameInp.value; });
+    nameInp.addEventListener('keydown', e => { if (e.key === 'Enter') nameInp.blur(); });
+    const dateInp = h('input', { class: 'input', id: 'trip-start', type: 'date', value: draft.startDate || '' });
+    const dateInfo = h('p', { class: 'meta', 'aria-live': 'polite', style: 'margin:0' });
+    const dateClear = h('button', { class: 'btn', type: 'button', hidden: !draft.startDate, onclick: () => { draft.startDate = null; dateInp.value = ''; drawDays(); } }, 'Datum entfernen');
+    const onDate = () => { draft.startDate = /^\d{4}-\d{2}-\d{2}$/.test(dateInp.value) ? dateInp.value : null; drawDays(); };
+    dateInp.addEventListener('input', onDate); dateInp.addEventListener('change', onDate);
+    const minus = h('button', { type: 'button', 'aria-label': 'Einen Tag weniger', onclick: () => setN(draft.n - 1) }, icon('minus', 22));
+    const plus = h('button', { type: 'button', 'aria-label': 'Einen Tag mehr', onclick: () => setN(draft.n + 1) }, icon('plus', 22));
+    const numInp = h('input', { type: 'number', inputmode: 'numeric', min: '1', max: String(MAX_DAYS), value: String(draft.n), 'aria-label': 'Anzahl Tage' });
+    const progLine = h('p', { class: 'meta', 'aria-live': 'polite', style: 'margin:0 0 10px' });
+    const daysHost = h('div');
+    const prevLine = h('p', { class: 'meta', 'aria-live': 'polite', style: 'margin:4px 0 0' });
+    const saveBtn = h('button', { class: 'tbtn r', type: 'button', onclick: () => save() }, 'Sichern');
+    ctl.guard = async () => { if (saving) return false; if (sig() === initial) return true; return confirmDialog({ title: 'Änderungen verwerfen?', body: 'Deine Eingaben gehen verloren.', confirmLabel: 'Verwerfen', cancelLabel: 'Weiter bearbeiten', danger: true }); };
+    const upd = () => { saveBtn.disabled = saving; saveBtn.textContent = saving ? 'Sichert …' : 'Sichern'; };
+    const drawDays = () => {
+      clear(daysHost);
+      for (let i = 0; i < draft.n; i++) {
+        const list = (draft.days[i] || []).map(id => getOutfit(id)).filter(Boolean);
+        daysHost.append(dayCard(i, draft.startDate, list, {
+          onRemove: out => { draft.days[i] = (draft.days[i] || []).filter(x => x !== out.id); drawDays(); },
+          addLabel: list.length ? 'Outfits ändern' : 'Outfit wählen',
+          onAdd: () => pickDay(i)
+        }));
+      }
+      const st = tripStats({ days: daysNow(), packed: {} });
+      progLine.textContent = st.filled + ' von ' + (draft.n === 1 ? '1 Tag' : draft.n + ' Tagen') + ' geplant';
+      prevLine.textContent = st.total ? 'Das ergibt ' + partWord(st.total) + ' zum Einpacken.' : '';
+      minus.disabled = draft.n <= 1; plus.disabled = draft.n >= MAX_DAYS;
+      dateClear.hidden = !draft.startDate;
+      dateInfo.textContent = draft.startDate ? (draft.n === 1 ? fmtShort(draft.startDate) : 'Von ' + fmtShort(draft.startDate) + ' bis ' + fmtShort(addDaysKey(draft.startDate, draft.n - 1))) : '';
+    };
+    const setN = v => { v = Math.max(1, Math.min(MAX_DAYS, v | 0)); draft.n = v; numInp.value = String(v); drawDays(); };
+    numInp.addEventListener('input', () => { const v = parseInt(numInp.value, 10); if (v >= 1 && v <= MAX_DAYS) { draft.n = v; drawDays(); } });
+    numInp.addEventListener('change', () => setN(parseInt(numInp.value, 10) || draft.n));
+    numInp.addEventListener('blur', () => setN(parseInt(numInp.value, 10) || draft.n));
+    const pickDay = i => {
+      let later = 0; for (let j = i + 1; j < draft.n; j++) if (!(draft.days[j] || []).length) later++;
+      openTripDayPicker({ day: i, startDate: draft.startDate, selected: (draft.days[i] || []).slice(), laterEmpty: later, onDone: (ids, fillRest) => {
+        draft.days[i] = ids;
+        if (ids.length && fillRest) for (let j = i + 1; j < draft.n; j++) if (!(draft.days[j] || []).length) draft.days[j] = ids.slice();
+        drawDays();
+      } });
+    };
+    const save = async () => {
+      if (saving) return;
+      saving = true; upd();
+      try {
+        const id = existing ? existing.id : uid();
+        const rec = Object.assign({}, existing || {}, {
+          id, name: draft.name.trim() || (existing ? existing.name : 'Reise ' + (S.trips.length + 1)),
+          startDate: draft.startDate || null,
+          days: daysNow(), createdAt: existing ? existing.createdAt : Date.now(), packed: existing ? (existing.packed || {}) : {}
+        });
+        const prev = snapshot();
+        S.trips = upsert(S.trips, rec);
+        const ok = await persistDiff(prev);
+        if (!ok) { S.trips = prev.trips; saving = false; upd(); return; }
+        saving = false; ctl.close(); refreshAll();
+        if (!existing) openTripDetail(id); else toast('Gespeichert.');
+      } catch (e) { console.error(e); saving = false; upd(); toast('Speichern hat nicht geklappt.'); }
+    };
+    root.append(
+      shead(existing ? 'Reise bearbeiten' : 'Neue Reise', textBtn('Abbrechen', () => ctl.requestClose()), saveBtn),
+      h('div', { class: 'sbody' },
+        h('div', { class: 'field' }, h('label', { for: 'trip-name' }, 'Name (optional)'), nameInp),
+        h('div', { class: 'field' }, h('label', { for: 'trip-start' }, 'Reisebeginn (optional)'), dateInp, dateInfo, dateClear, h('span', { class: 'hint' }, 'Mit Datum siehst du bei jedem Tag den Wochentag und den Zeitraum der Reise.')),
+        h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Anzahl Tage'), h('div', { class: 'stepper' }, minus, numInp, plus)),
+        h('div', { class: 'sec', style: 'margin-top:4px' }, h('span', null, 'Outfits pro Tag')),
+        progLine, daysHost, prevLine,
+        h('p', { class: 'meta', style: 'margin-top:10px' }, 'Pro Tag sind mehrere Outfits möglich, zum Beispiel für Arbeit und Abend. Dasselbe Outfit darfst du an mehreren Tagen verwenden.'),
+        existing ? h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn danger block', type: 'button', onclick: async () => { const closed = await ctl.requestClose(); if (closed) deleteTrip(existing.id); } }, 'Reise löschen')) : null));
+    drawDays(); upd();
+  }, { label: existing ? 'Reise bearbeiten' : 'Neue Reise' });
+}
+async function deleteTrip(id) {
+  const t = getTrip(id); if (!t) return;
+  const snap = snapshot();
+  S.trips = S.trips.filter(x => x.id !== id);
+  await persistDiff(snap);
+  refreshAll();
+  toast('„' + t.name + '“ gelöscht', { label: 'Rückgängig', fn: () => undoTo(snap) });
+}
+
+/* =====================================================================
    Start
    ===================================================================== */
 async function migrateData() {
@@ -1433,6 +1805,14 @@ async function migrateData() {
   if (!Store.locked && (from !== SCHEMA_VERSION || (await Store.get('meta', 'schemaVersion')) == null)) await Store.put('meta', 'schemaVersion', SCHEMA_VERSION);
 }
 const normItem = i => Object.assign({ name: 'Teil', categoryId: null, createdAt: Date.now(), useCutout: false, hasCut: false, strength: 50, thumbOrig: '', thumbCut: null }, i);
+const normDay = d => Array.isArray(d) ? Array.from(new Set(d.filter(x => typeof x === 'string' && x))) : (typeof d === 'string' && d ? [d] : []);
+const normTrip = t => {
+  const r = Object.assign({ name: 'Reise', days: [], packed: {}, startDate: null, createdAt: Date.now() }, t);
+  r.days = (Array.isArray(r.days) ? r.days : []).map(normDay);
+  r.packed = (r.packed && typeof r.packed === 'object') ? r.packed : {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(r.startDate || '')) r.startDate = null;
+  return r;
+};
 const normOutfit = o => Object.assign({ name: 'Outfit', tags: [], itemIds: [], createdAt: Date.now(), thumb: null, hasPhoto: false }, o);
 async function boot() {
   await Store.init();
@@ -1440,6 +1820,7 @@ async function boot() {
     await migrateData();
     S.items = (await Store.getAll('items')).map(normItem).sort((a, b) => b.createdAt - a.createdAt);
     S.outfits = (await Store.getAll('outfits')).map(normOutfit).sort((a, b) => b.createdAt - a.createdAt);
+    try { S.trips = (await Store.getAll('trips')).map(normTrip).sort((a, b) => b.createdAt - a.createdAt); } catch (e) { S.trips = []; }
     let cats = await Store.get('meta', 'cats');
     if (!Array.isArray(cats)) { cats = STD_CATS.map(c => ({ id: c[0], name: c[1], icon: c[2] })); if (!Store.locked) await Store.put('meta', 'cats', cats); }
     S.cats = cats;
@@ -1461,7 +1842,7 @@ async function boot() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBackupBanner(); });
   setInterval(() => { checkBackupBanner(); renderTabs(); }, 60000);
 }
-window.__kleiderschrank = { S, Store, computeCutout, prepareCutout, backupInfo, checkBackupBanner, createBackup, restoreFromFile, openItemEdit, openOutfitEdit, openItemDetail, openOutfitDetail, deleteItem, deleteOutfit, sheets, processPhoto, cutFrom, renderRoot, undoTo, snapshot, boot };
+window.__kleiderschrank = { S, Store, openTripEdit, openTripDetail, deleteTrip, tripStats, computeCutout, prepareCutout, backupInfo, checkBackupBanner, createBackup, restoreFromFile, openItemEdit, openOutfitEdit, openItemDetail, openOutfitDetail, deleteItem, deleteOutfit, sheets, processPhoto, cutFrom, renderRoot, undoTo, snapshot, boot };
 boot();
 })();
 </script>
