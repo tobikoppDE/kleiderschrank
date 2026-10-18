@@ -71,7 +71,7 @@ button{cursor:pointer}
 .grid.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px}
 @media (min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (min-width:900px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.tile{position:relative;display:block;width:100%;min-width:0;padding:0;border:0;background:none;text-align:left}
+.tile{position:relative;display:block;align-self:start;width:100%;min-width:0;padding:0;border:0;background:none;text-align:left}
 .tile-img{position:relative;display:grid;place-items:center;aspect-ratio:4/5;background:var(--tile);border-radius:16px;overflow:hidden}
 .tile-img img{display:block}
 .tile-img img.cut{max-width:90%;max-height:90%;object-fit:contain;filter:drop-shadow(0 7px 7px var(--cut-shadow))}
@@ -148,9 +148,9 @@ input[type=date].input{min-width:0;-webkit-appearance:none;appearance:none}
 .iconseg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
 .iconseg button{width:44px;height:44px;border:0;background:none;display:grid;place-items:center;color:var(--muted)}
 .iconseg button[aria-pressed="true"]{background:var(--tile);color:var(--accent)}
-.swipe{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px max(11%,calc((100% - 340px)/2)) 12px;margin:0 -16px;scrollbar-width:none}
+.swipe{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px max(11%,calc((100% - 340px)/2)) 12px;margin:0 -16px;scrollbar-width:none}
 .swipe::-webkit-scrollbar{display:none}
-.scard{flex:0 0 min(78%,340px);scroll-snap-align:center;display:block;min-width:0;padding:0;border:0;background:none;text-align:left}
+.scard{flex:0 0 min(78%,340px);scroll-snap-align:center;align-self:flex-start;display:flex;flex-direction:column;justify-content:flex-start;min-width:0;padding:0;border:0;background:none;text-align:left}
 .scard .scover{display:grid;place-items:center;aspect-ratio:3/4;background:var(--tile);border-radius:20px;overflow:hidden}
 .scard .scover img.photo{width:100%;height:100%;object-fit:cover}
 .scard .sname{display:block;margin-top:10px;font:600 20px/1.2 var(--serif)}
@@ -357,7 +357,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* =====================================================================
    Speicher: IndexedDB mit Fallback auf Arbeitsspeicher
    ===================================================================== */
-const APP_VERSION = '1.17';
+const APP_VERSION = '1.18';
 /* Update-sicherer Speicher. Regeln für zukünftige Änderungen:
    - DB_NAME niemals ändern, sonst sind die bestehenden Daten für die App unsichtbar.
    - Neue Stores/Indizes: DB_VERSION erhöhen und in onupgradeneeded ergänzen (vorhandene Stores bleiben unberührt).
