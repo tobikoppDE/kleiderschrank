@@ -137,6 +137,30 @@ input[type=date].input{min-width:0;-webkit-appearance:none;appearance:none}
 .ptile[aria-pressed="true"] .pimg2{box-shadow:0 0 0 3px var(--accent)}
 .ptile b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.2;margin-top:5px}
 .ptile small{display:block;color:var(--muted);font-size:12px}
+.daygroup{margin:0 0 18px}
+.photogrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.photogrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.ptile2{display:block;width:100%;min-width:0;padding:0;border:0;background:none;text-align:left}
+.ptile2 .pcover{display:grid;place-items:center;aspect-ratio:3/4;background:var(--tile);border-radius:14px;overflow:hidden}
+.ptile2 .pcover img.photo{width:100%;height:100%;object-fit:cover}
+.ptile2 b{display:block;margin-top:6px;font-size:15px;line-height:1.25}
+.ptile2 small{display:block;color:var(--muted);font-size:13px;line-height:1.3}
+.iconseg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.iconseg button{width:44px;height:44px;border:0;background:none;display:grid;place-items:center;color:var(--muted)}
+.iconseg button[aria-pressed="true"]{background:var(--tile);color:var(--accent)}
+.swipe{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px max(11%,calc((100% - 340px)/2)) 12px;margin:0 -16px;scrollbar-width:none}
+.swipe::-webkit-scrollbar{display:none}
+.scard{flex:0 0 min(78%,340px);scroll-snap-align:center;display:block;min-width:0;padding:0;border:0;background:none;text-align:left}
+.scard .scover{display:grid;place-items:center;aspect-ratio:3/4;background:var(--tile);border-radius:20px;overflow:hidden}
+.scard .scover img.photo{width:100%;height:100%;object-fit:cover}
+.scard .sname{display:block;margin-top:10px;font:600 20px/1.2 var(--serif)}
+.scard .ssub{display:block;color:var(--muted);font-size:14px}
+.stags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.stags span{padding:2px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted)}
+.scard.sel .scover{box-shadow:0 0 0 3px var(--accent)}
+.scard .scover{position:relative}
+.sfoot .checkrow{margin:0 0 8px;text-align:left}
+.swipecount{text-align:center;color:var(--muted);font-size:14px;margin:4px 0 0}
 .tierblock{display:grid;gap:8px;margin:0 0 18px}
 .layerrow{width:100%;border:1px solid var(--line);background:var(--surface);margin:0 0 8px;border-radius:14px;padding:6px 10px}
 .dayhead{display:flex;align-items:baseline;gap:10px;margin:0 0 6px 6px}
@@ -228,6 +252,9 @@ button.orow-main:active{background:var(--tile)}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--tile);border-radius:13px;padding:3px;margin:0 0 14px}
 .seg button{min-height:42px;border:0;border-radius:10px;background:none;font-weight:500}
 .seg.compact button{font-size:14px;padding:0 4px}
+.seg button[aria-selected="true"]{background:var(--surface);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.tabbar{position:sticky;top:calc(55px + env(safe-area-inset-top,0px));z-index:4;background:var(--bg);padding:8px 0 4px;margin:0 0 6px}
+.tabbar .seg{margin:0}
 .seg button[aria-pressed="true"]{background:var(--surface);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .range{display:grid;gap:2px;margin:0 0 14px}
 .range input{width:100%;height:44px;accent-color:var(--accent)}
@@ -293,6 +320,8 @@ const SVG_ICONS = {
   shirt: '<path d="M8.5 4L3.5 7l2 3.6 2.2-1.2V20h8.6V9.4l2.2 1.2 2-3.6-5-3c-.5 1.5-1.9 2.4-3.5 2.4S9 5.5 8.5 4z"/>',
   suitcase: '<rect x="3.5" y="8" width="17" height="11.5" rx="2"/><path d="M9 8V6.2A1.2 1.2 0 0 1 10.2 5h3.6A1.2 1.2 0 0 1 15 6.2V8M3.5 13h17"/>',
   minus: '<path d="M5 12h14"/>',
+  grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2"/>',
+  swipe: '<rect x="7" y="5" width="10" height="14" rx="2"/><path d="M3.5 9v6M20.5 9v6"/>',
   more: '<circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/>',
   camera: '<path d="M4 8.5h3l1.5-2.5h7L17 8.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>'
 };
@@ -328,14 +357,14 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* =====================================================================
    Speicher: IndexedDB mit Fallback auf Arbeitsspeicher
    ===================================================================== */
-const APP_VERSION = '1.14';
+const APP_VERSION = '1.17';
 /* Update-sicherer Speicher. Regeln für zukünftige Änderungen:
    - DB_NAME niemals ändern, sonst sind die bestehenden Daten für die App unsichtbar.
    - Neue Stores/Indizes: DB_VERSION erhöhen und in onupgradeneeded ergänzen (vorhandene Stores bleiben unberührt).
    - Neues Datenformat: SCHEMA_VERSION erhöhen und eine Migration in DATA_MIGRATIONS eintragen. */
 const DB_NAME = 'kleiderschrank-v1';
 const DB_VERSION = 2;
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 const STORES = { items: 'id', outfits: 'id', trips: 'id', meta: null, photos: null };
 const DATA_MIGRATIONS = {
   // 2: Reisetage enthalten jetzt eine Liste von Outfits statt eines einzelnen (Version 1.2 → 1.3)
@@ -356,7 +385,9 @@ const DATA_MIGRATIONS = {
   6: async () => {
     for (const i of await Store.getAll('items')) await Store.put('items', i.id, normItem(i));
     for (const t of await Store.getAll('trips')) await Store.put('trips', t.id, normTrip(t));
-  }
+  },
+  // 7: Zusatzschicht-Varianten haben eigene Tags (Version 1.15 → 1.16)
+  7: async () => { for (const o of await Store.getAll('outfits')) await Store.put('outfits', o.id, normOutfit(o)); }
 };
 const Store = {
   mode: 'idb', db: null, locked: null,
@@ -944,7 +975,7 @@ async function restoreFromFile(file) {
               await Store.put('photos', 'outfit:' + m.id + ':layer:' + lm.id, lb); dropPhotoURL('outfit:' + m.id + ':layer:' + lm.id);
             }
           }
-          layers.push({ id: lm.id, name: lm.name || '', tier: lm.tier === 1 ? 1 : 0, itemIds: Array.isArray(lm.itemIds) ? lm.itemIds : [], hasPhoto: lhas, thumb: lthumb });
+          layers.push({ id: lm.id, name: lm.name || '', tier: lm.tier === 1 ? 1 : 0, tags: Array.isArray(lm.tags) ? lm.tags.filter(x => typeof x === 'string') : [], itemIds: Array.isArray(lm.itemIds) ? lm.itemIds : [], hasPhoto: lhas, thumb: lthumb });
         }
         const rec = { id: m.id, name: m.name || 'Outfit', tags: Array.isArray(m.tags) ? m.tags : [], itemIds: Array.isArray(m.itemIds) ? m.itemIds : [], createdAt: m.createdAt || Date.now(), thumb, hasPhoto, layers, tierNames: Array.isArray(m.tierNames) ? [String(m.tierNames[0] || ''), String(m.tierNames[1] || '')] : ['', ''], shoeIds: Array.isArray(m.shoeIds) ? m.shoeIds.filter(x => typeof x === 'string') : [] };
         S.outfits = upsert(S.outfits, rec);
@@ -1061,6 +1092,19 @@ function allTags() {
   S.outfits.forEach(o => o.tags.forEach(t => m.set(t, (m.get(t) || 0) + 1)));
   return Array.from(m.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de')).map(e => e[0]);
 }
+// Tags, die in der Ansicht einer Zusatzschicht etwas bewirken: Outfit-Tags und Tags der Varianten dieser Schicht
+function allTagsFor(view) {
+  if (view === null || view === undefined) return allTags();
+  const m = new Map();
+  S.outfits.forEach(o => (o.layers || []).filter(l => l.tier === view).forEach(l => o.tags.concat(l.tags || []).forEach(t => m.set(t, (m.get(t) || 0) + 1))));
+  return Array.from(m.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de')).map(e => e[0]);
+}
+// Alle bekannten Tags (Outfits und Varianten) als Vorschläge
+function tagPool() {
+  const m = new Map();
+  S.outfits.forEach(o => o.tags.concat(...(o.layers || []).map(l => l.tags || [])).forEach(t => m.set(t, (m.get(t) || 0) + 1)));
+  return Array.from(m.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de')).map(e => e[0]);
+}
 function filteredOutfits() {
   const q = S.ui.oq.trim().toLowerCase();
   return S.outfits.filter(o => S.ui.tags.every(t => o.tags.includes(t)) && (!q || o.name.toLowerCase().includes(q) || o.tags.some(t => t.toLowerCase().includes(q))));
@@ -1074,31 +1118,62 @@ function outfitCover(o) {
 function outfitCard(o, onClick, selected, layer, subText) {
   const own = layer && layer.hasPhoto && layer.thumb;
   const sub = subText ? subText : layer
-    ? layerLabel(o, layer) + (layer.hasPhoto ? '' : ' · kein eigenes Foto')
+    ? layerLabel(o, layer) + ((layer.tags || []).length ? ' · ' + layer.tags.join(', ') : '') + (layer.hasPhoto ? '' : ' · kein eigenes Foto')
     : o.itemIds.length + (o.itemIds.length === 1 ? ' Teil' : ' Teile') + (o.tags.length ? ' · ' + o.tags.join(', ') : '');
   return h('button', { class: 'tile' + (selected ? ' sel' : ''), type: 'button', 'aria-pressed': selected == null ? null : String(!!selected), 'aria-label': o.name + (layer ? ', ' + layerLabel(o, layer) : '') + (o.tags.length ? ', ' + o.tags.join(', ') : ''), onclick: onClick },
     h('span', { class: 'cover' }, own ? h('img', { src: layer.thumb, alt: '', class: 'photo', loading: 'lazy' }) : outfitCover(o), selected ? h('span', { class: 'badge' }, icon('check', 16)) : null),
     h('span', { class: 'tile-name' }, o.name),
     h('span', { class: 'tile-sub' }, sub));
 }
+// Wisch-Ansicht: je Outfit (oder Variante) eine große Kachel; wird von „Outfits“ und der Outfit-Auswahl der Reise genutzt
+function makeSwipe(cards) {
+  const swipe = h('div', { class: 'swipe', role: 'region', 'aria-roledescription': 'Karussell', 'aria-label': 'Outfits, nach links oder rechts wischen', tabindex: '0' }, cards);
+  const counter = h('p', { class: 'swipecount', 'aria-live': 'polite' }, '1 von ' + cards.length);
+  const sync = () => { const c = swipe.firstElementChild; if (!c) return; const idx = Math.min(cards.length - 1, Math.max(0, Math.round(swipe.scrollLeft / (c.offsetWidth + 12)))); counter.textContent = (idx + 1) + ' von ' + cards.length; };
+  let raf = 0;
+  swipe.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); });
+  swipe.addEventListener('keydown', ev => {
+    if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && swipe.scrollBy && swipe.firstElementChild) { ev.preventDefault(); swipe.scrollBy({ left: (ev.key === 'ArrowRight' ? 1 : -1) * (swipe.firstElementChild.offsetWidth + 12), behavior: 'smooth' }); }
+  });
+  swipe._sync = sync;
+  return [swipe, counter];
+}
+function outfitSwipeCard(o, l, opts) {
+  opts = opts || {};
+  const own = l && l.hasPhoto && l.thumb;
+  const eff = opts.tags || (l ? o.tags.concat((l.tags || []).filter(t => !o.tags.includes(t))) : o.tags);
+  const sub = opts.sub || (l ? layerLabel(o, l) + (l.hasPhoto ? '' : ' · kein eigenes Foto') : partWord(o.itemIds.length));
+  return h('button', { class: 'scard' + (opts.selected ? ' sel' : ''), type: 'button', 'aria-pressed': opts.selected == null ? null : String(!!opts.selected), 'aria-label': o.name + (l ? ', ' + layerLabel(o, l) : '') + (eff.length ? ', ' + eff.join(', ') : ''), onclick: opts.onClick },
+    h('span', { class: 'scover' }, own ? h('img', { src: l.thumb, alt: '', class: 'photo' }) : outfitCover(o), opts.selected ? h('span', { class: 'badge' }, icon('check', 16)) : null),
+    h('span', { class: 'sname' }, o.name),
+    h('span', { class: 'ssub' }, sub),
+    eff.length ? h('span', { class: 'stags' }, eff.map(t => h('span', null, t))) : null);
+}
 // Galerie: ohne Zusatzschicht, oder jede Variante einer Zusatzschicht als eigene Kachel
 function galleryEntries(view = S.ui.view, qRaw = S.ui.oq, tagList = S.ui.tags, pred = null) {
   const q = qRaw.trim().toLowerCase();
+  const hasTags = arr => tagList.every(t => arr.includes(t));
   const outfitHit = o => !q || o.name.toLowerCase().includes(q) || o.tags.some(t => t.toLowerCase().includes(q));
-  const layerHit = (o, l) => !!q && layerLabel(o, l).toLowerCase().includes(q);
+  const layerHit = (o, l) => !!q && (layerLabel(o, l).toLowerCase().includes(q) || (l.tags || []).some(t => t.toLowerCase().includes(q)));
   const entries = []; let hidden = 0;
-  S.outfits.filter(o => tagList.every(t => o.tags.includes(t)) && (!pred || pred(o))).forEach(o => {
+  S.outfits.filter(o => !pred || pred(o)).forEach(o => {
     const oh = outfitHit(o), anyHit = oh || (o.layers || []).some(l => layerHit(o, l));
-    if (view === null) { if (anyHit) entries.push({ o, layer: null }); return; }
+    if (view === null) { if (hasTags(o.tags) && anyHit) entries.push({ o, layer: null }); return; }
     const ls = (o.layers || []).filter(l => l.tier === view);
-    if (!ls.length) { if (anyHit) hidden++; return; }
-    ls.forEach(l => { if (oh || layerHit(o, l)) entries.push({ o, layer: l }); });
+    if (!ls.length) { if (hasTags(o.tags) && anyHit) hidden++; return; }
+    // eine Variante erbt die Tags des Outfits und kann eigene dazubekommen
+    ls.forEach(l => { if (hasTags(o.tags.concat(l.tags || [])) && (oh || layerHit(o, l))) entries.push({ o, layer: l }); });
   });
   return { entries, hidden };
 }
 function viewOutfits() {
   const page = h('div', { class: 'page' });
-  page.append(topBar('Outfits', S.outfits.length ? h('button', { class: 'pill-btn', type: 'button', onclick: () => openOutfitEdit({}) }, icon('plus', 20), 'Outfit') : h('span')));
+  const mode = S.settings.galleryMode === 'swipe' ? 'swipe' : 'grid';
+  const setMode = m => { S.settings.galleryMode = m; saveSettings(); renderRoot(); };
+  const modeToggle = h('div', { class: 'iconseg', role: 'group', 'aria-label': 'Darstellung der Outfits' },
+    h('button', { type: 'button', 'aria-pressed': String(mode === 'grid'), 'aria-label': 'Raster', onclick: () => setMode('grid') }, icon('grid', 20)),
+    h('button', { type: 'button', 'aria-pressed': String(mode === 'swipe'), 'aria-label': 'Einzeln wischen', onclick: () => setMode('swipe') }, icon('swipe', 20)));
+  page.append(topBar('Outfits', S.outfits.length ? h('div', { style: 'display:flex;gap:8px;align-items:center' }, modeToggle, h('button', { class: 'pill-btn', type: 'button', onclick: () => openOutfitEdit({}) }, icon('plus', 20), 'Outfit')) : h('span')));
   const host = h('div');
   const draw = () => {
     clear(host);
@@ -1115,7 +1190,10 @@ function viewOutfits() {
       host.append(h('div', { class: 'empty' }, h('h2', null, 'Nichts gefunden'), h('p', null, 'Kein Outfit passt zu Suche und Tags.'), h('button', { class: 'btn', type: 'button', onclick: () => { S.ui.oq = ''; S.ui.tags = []; renderRoot(); } }, 'Filter zurücksetzen')));
       return;
     }
-    host.append(h('div', { class: 'grid' }, entries.map(e => outfitCard(e.o, () => openOutfitDetail(e.o.id, e.layer ? { tier: e.layer.tier, id: e.layer.id } : null), undefined, e.layer))));
+    if (mode === 'swipe') {
+      const [sw, ct] = makeSwipe(entries.map(e => outfitSwipeCard(e.o, e.layer, { onClick: () => openOutfitDetail(e.o.id, e.layer ? { tier: e.layer.tier, id: e.layer.id } : null) })));
+      host.append(sw, ct);
+    } else host.append(h('div', { class: 'grid' }, entries.map(e => outfitCard(e.o, () => openOutfitDetail(e.o.id, e.layer ? { tier: e.layer.tier, id: e.layer.id } : null), undefined, e.layer))));
     if (hidden) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:16px', role: 'status' }, hidden + (hidden === 1 ? ' Outfit' : ' Outfits') + ' ohne Zusatzschicht ' + (S.ui.view + 1) + ' ausgeblendet'));
   };
   if (S.outfits.length) page.append(searchBox(S.ui.oq, 'Outfits durchsuchen', v => { S.ui.oq = v; draw(); }));
@@ -1123,7 +1201,7 @@ function viewOutfits() {
   if (!S.outfits.some(o => (o.layers || []).length)) S.ui.view = null;
   else page.append(h('div', { class: 'seg compact', role: 'group', 'aria-label': 'Zusatzschicht in der Galerie zeigen' },
     [['Ohne', null], ['Zusatzschicht 1', 0], ['Zusatzschicht 2', 1]].map(([lab, v]) => h('button', { type: 'button', 'aria-pressed': String(S.ui.view === v), onclick: () => { S.ui.view = v; renderRoot(); } }, lab))));
-  const tags = allTags();
+  const tags = allTagsFor(S.ui.view);
   S.ui.tags = S.ui.tags.filter(t => tags.includes(t));
   if (tags.length) {
     const chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Nach Tags filtern' });
@@ -1203,7 +1281,9 @@ function openItemDetail(id) {
 }
 function openOutfitDetail(id, pre) {
   let sel = [null, null];
-  if (pre && (pre.tier === 0 || pre.tier === 1)) sel[pre.tier] = pre.id;
+  // Vorauswahl: eine Variante { tier, id } oder die gewählten Varianten einer Reise [Zusatzschicht 1, Zusatzschicht 2]
+  if (Array.isArray(pre)) pre.forEach(v => { if (v && (v.tier === 0 || v.tier === 1)) sel[v.tier] = v.id; });
+  else if (pre && (pre.tier === 0 || pre.tier === 1)) sel[pre.tier] = pre.id;
   openSheet((root, ctl) => {
     const draw = () => {
       const o = getOutfit(id);
@@ -1503,7 +1583,7 @@ async function deleteItem(id) {
 function normTag(raw) {
   const t = (raw || '').replace(/\s+/g, ' ').trim().slice(0, 24);
   if (!t) return '';
-  const known = allTags().concat(SEASONS).find(k => k.toLowerCase() === t.toLowerCase());
+  const known = tagPool().concat(SEASONS).find(k => k.toLowerCase() === t.toLowerCase());
   return known || t;
 }
 function openOutfitEdit(opts) {
@@ -1514,12 +1594,12 @@ function openOutfitEdit(opts) {
     tags: existing ? existing.tags.slice() : [],
     itemIds: existing ? existing.itemIds.filter(id => getItem(id)) : (opts.preselect && getItem(opts.preselect) ? [opts.preselect] : []),
     photo: null, removePhoto: false,
-    layers: existing ? (existing.layers || []).map(l => ({ id: l.id, name: l.name || '', tier: l.tier === 1 ? 1 : 0, itemIds: l.itemIds.filter(x => getItem(x)), hasPhoto: !!l.hasPhoto, thumb: l.thumb || null, photo: null, removePhoto: false, previewURL: null })) : [],
+    layers: existing ? (existing.layers || []).map(l => ({ id: l.id, name: l.name || '', tier: l.tier === 1 ? 1 : 0, tags: (l.tags || []).slice(), itemIds: l.itemIds.filter(x => getItem(x)), hasPhoto: !!l.hasPhoto, thumb: l.thumb || null, photo: null, removePhoto: false, previewURL: null })) : [],
     tierNames: existing ? [(existing.tierNames || [])[0] || '', (existing.tierNames || [])[1] || ''] : ['', ''],
     shoeIds: existing ? (existing.shoeIds || []).filter(x => getItem(x)) : []
   };
   const hadPhoto = !!(existing && existing.hasPhoto);
-  const layersSig = () => JSON.stringify([draft.layers.map(l => [l.id, l.name, l.tier, l.itemIds, !!l.photo, !!(l.hasPhoto && !l.removePhoto)]), draft.tierNames.map(x => x.trim())]);
+  const layersSig = () => JSON.stringify([draft.layers.map(l => [l.id, l.name, l.tier, l.tags, l.itemIds, !!l.photo, !!(l.hasPhoto && !l.removePhoto)]), draft.tierNames.map(x => x.trim())]);
   const initial = JSON.stringify([draft.name, draft.tags, draft.itemIds, draft.shoeIds, layersSig()]);
   let saving = false, previewURL = null;
   openSheet((root, ctl) => {
@@ -1569,7 +1649,7 @@ function openOutfitEdit(opts) {
     const drawTags = () => {
       clear(tagBox); clear(sugBox);
       draft.tags.forEach(t => tagBox.append(h('button', { class: 'chip', type: 'button', 'aria-label': 'Tag ' + t + ' entfernen', onclick: () => { draft.tags = draft.tags.filter(x => x !== t); drawTags(); } }, t, h('span', { class: 'x' }, icon('x', 16)))));
-      const sug = SEASONS.concat(allTags().filter(t => !SEASONS.includes(t))).filter(t => !draft.tags.some(x => x.toLowerCase() === t.toLowerCase()));
+      const sug = SEASONS.concat(tagPool().filter(t => !SEASONS.includes(t))).filter(t => !draft.tags.some(x => x.toLowerCase() === t.toLowerCase()));
       sug.forEach(t => sugBox.append(h('button', { class: 'chip ghost', type: 'button', onclick: () => addTag(t) }, '+ ' + t)));
     };
     const drawItems = () => {
@@ -1635,7 +1715,7 @@ function openOutfitEdit(opts) {
             lPuts.push(['outfit:' + id + ':layer:' + l.id, await toBlob(lcv, 'image/jpeg', .86)]);
             lThumb = coverCanvas(lcv, 360, 480).toDataURL('image/jpeg', .82); lHas = true;
           } else if (l.hasPhoto && l.removePhoto) lDels.push('outfit:' + id + ':layer:' + l.id);
-          layerRecs.push({ id: l.id, name: (l.name || '').trim(), tier: l.tier === 1 ? 1 : 0, itemIds: l.itemIds.filter(x => getItem(x)), hasPhoto: lHas, thumb: lThumb });
+          layerRecs.push({ id: l.id, name: (l.name || '').trim(), tier: l.tier === 1 ? 1 : 0, tags: (l.tags || []).slice(), itemIds: l.itemIds.filter(x => getItem(x)), hasPhoto: lHas, thumb: lThumb });
         }
         (existing ? (existing.layers || []) : []).forEach(pl => { if (pl.hasPhoto && !draft.layers.some(l => l.id === pl.id)) lDels.push('outfit:' + id + ':layer:' + pl.id); });
         const rec = Object.assign({}, existing || {}, { id, name: draft.name.trim() || (existing ? existing.name : 'Outfit ' + (S.outfits.length + 1)), tags: draft.tags.slice(), itemIds: draft.itemIds.slice(), createdAt: existing ? existing.createdAt : Date.now(), thumb, hasPhoto, layers: layerRecs, tierNames: draft.tierNames.map(x => x.trim()), shoeIds: draft.shoeIds.slice() });
@@ -1676,8 +1756,8 @@ const findLayer = (o, lid, tier) => (lid && o ? (o.layers || []).find(x => x.id 
 const photoLayer = vars => { for (let k = vars.length - 1; k >= 0; k--) if (vars[k] && vars[k].hasPhoto) return vars[k]; return null; };
 function openLayerEdit(opts) {
   const src = opts.layer, tier = src ? src.tier : opts.tier;
-  const draft = src ? Object.assign({}, src, { itemIds: src.itemIds.slice() }) : { id: 'ly-' + uid(), name: '', tier, itemIds: [], hasPhoto: false, thumb: null, photo: null, removePhoto: false, previewURL: null };
-  const sig = () => JSON.stringify([draft.name, draft.itemIds, !!draft.photo, !!(draft.hasPhoto && !draft.removePhoto)]);
+  const draft = src ? Object.assign({}, src, { itemIds: src.itemIds.slice(), tags: (src.tags || []).slice() }) : { id: 'ly-' + uid(), name: '', tier, tags: [], itemIds: [], hasPhoto: false, thumb: null, photo: null, removePhoto: false, previewURL: null };
+  const sig = () => JSON.stringify([draft.name, draft.tags, draft.itemIds, !!draft.photo, !!(draft.hasPhoto && !draft.removePhoto)]);
   const initial = sig();
   const created = []; let committed = false;
   openSheet((root, ctl) => {
@@ -1688,6 +1768,17 @@ function openLayerEdit(opts) {
     nameInp.addEventListener('keydown', e => { if (e.key === 'Enter') nameInp.blur(); });
     ctl.guard = async () => { if (sig() === initial) return true; return confirmDialog({ title: 'Änderungen verwerfen?', body: 'Deine Eingaben gehen verloren.', confirmLabel: 'Verwerfen', cancelLabel: 'Weiter bearbeiten', danger: true }); };
     ctl.onClose = () => { if (!committed) created.forEach(u => URL.revokeObjectURL(u)); };
+    const tagBox = h('div', { class: 'chips wrap', style: 'margin-bottom:8px' }), sugBox = h('div', { class: 'chips wrap', style: 'margin-top:10px' });
+    const tagInp = h('input', { class: 'input', id: 'layer-tag', type: 'text', placeholder: 'Neuen Tag eingeben', enterkeyhint: 'done', autocomplete: 'off', maxlength: '24' });
+    const addTag = t => { t = normTag(t); if (!t) return; if (!draft.tags.some(x => x.toLowerCase() === t.toLowerCase())) draft.tags.push(t); tagInp.value = ''; drawTags(); };
+    tagInp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTag(tagInp.value); } });
+    tagInp.addEventListener('blur', () => { if (tagInp.value.trim()) addTag(tagInp.value); });
+    const drawTags = () => {
+      clear(tagBox); clear(sugBox);
+      draft.tags.forEach(t => tagBox.append(h('button', { class: 'chip', type: 'button', 'aria-label': 'Tag ' + t + ' entfernen', onclick: () => { draft.tags = draft.tags.filter(x => x !== t); drawTags(); } }, t, h('span', { class: 'x' }, icon('x', 16)))));
+      SEASONS.concat(tagPool().filter(t => !SEASONS.includes(t))).filter(t => !draft.tags.some(x => x.toLowerCase() === t.toLowerCase()))
+        .forEach(t => sugBox.append(h('button', { class: 'chip ghost', type: 'button', onclick: () => addTag(t) }, '+ ' + t)));
+    };
     const hasPhotoNow = () => !!draft.photo || !!(draft.hasPhoto && !draft.removePhoto);
     const upd = () => { doneBtn.disabled = !draft.itemIds.some(x => getItem(x)); };
     const choose = async () => {
@@ -1721,8 +1812,11 @@ function openLayerEdit(opts) {
         heroHost, photoBtns,
         h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Teile der Variante'), itemBox),
         h('div', { class: 'field' }, h('label', { for: 'layer-name' }, 'Name (optional)'), nameInp, h('span', { class: 'hint' }, 'Ohne Namen heißt sie „Mit …“ und nennt die Teile.')),
+        h('div', { class: 'field' }, h('label', { for: 'layer-tag' }, 'Tags (optional)'), tagBox,
+          h('div', { class: 'tagbar' }, tagInp, h('button', { class: 'btn', type: 'button', 'aria-label': 'Tag hinzufügen', onclick: () => addTag(tagInp.value) }, icon('plus', 20))),
+          h('span', { class: 'hint' }, 'Zusätzlich zu den Tags des Outfits, zum Beispiel Abend oder Regen.'), sugBox),
         src ? h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn danger block', type: 'button', onclick: () => { committed = false; opts.onDelete(draft.id); ctl.close(); } }, 'Variante entfernen')) : null));
-    drawPhoto(); drawItems();
+    drawPhoto(); drawItems(); drawTags();
   }, { label: 'Variante' });
 }
 async function deleteOutfit(id) {
@@ -1912,7 +2006,7 @@ function dayCard(i, startDate, entries, o) {
     const lab = chosen.map(l => layerLabel(out, l)).join(' + ');
     const info = [h('span', { class: 'dimg' }, miniImg(out, en.layers)), h('span', { class: 'dtxt' }, h('b', null, out.name), h('small', null, partWord(n) + (lab ? ' · ' + lab : '') + (out.tags.length ? ' · ' + out.tags.join(', ') : '')), o.showShoes ? h('small', { class: 'shoeline' + (en.shoe ? '' : ' warn') }, en.shoe ? 'Schuhe: ' + en.shoe.name : 'Noch keine Schuhe gewählt') : null)];
     const main = o.onOpen
-      ? h('button', { class: 'orow-main', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + out.name + (lab ? ', ' + lab : ''), onclick: () => o.onOpen(out) }, ...info, icon('chev', 18))
+      ? h('button', { class: 'orow-main', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + out.name + (lab ? ', ' + lab : ''), onclick: () => o.onOpen(out, en.layers) }, ...info, icon('chev', 18))
       : h('div', { class: 'orow-main' }, ...info);
     const row = h('div', { class: 'orow' }, main, o.onRemove ? h('button', { class: 'rmbtn', type: 'button', 'aria-label': out.name + ' von Tag ' + (i + 1) + ' entfernen', onclick: () => o.onRemove(out) }, icon('x', 18)) : null);
     const extra = o.extra ? o.extra(en) : null;
@@ -1970,6 +2064,7 @@ function viewTrips() {
 }
 
 function openTripDetail(id) {
+  let tab = 'pack';
   openSheet((root, ctl) => {
     const draw = () => {
       const t = getTrip(id);
@@ -2028,7 +2123,23 @@ function openTripDetail(id) {
       const noItemsNote = st.noItems.length ? h('p', { class: 'meta', style: 'margin-top:12px' }, 'Ohne Teile hinterlegt: ' + st.noItems.map(o => '„' + o.name + '“').join(', ') + '. Dafür gibt es nichts zu packen.') : null;
       const openNote = st.open ? h('div', { class: 'notice' }, (st.open === 1 ? 'Für 1 Tag fehlt noch ein Outfit.' : 'Für ' + st.open + ' Tage fehlt jeweils noch ein Outfit.') + ' Die Packliste ist erst vollständig, wenn alle Tage ein Outfit haben.', h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openTripEdit({ id }) }, 'Outfits ergänzen'))) : null;
       const shoeNote = st.shoeMissing ? h('div', { class: 'notice' }, (st.shoeMissing === 1 ? 'Für 1 Outfit ist noch kein Paar Schuhe gewählt.' : 'Für ' + st.shoeMissing + ' Outfits sind noch keine Schuhe gewählt.'), h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', type: 'button', onclick: () => openTripEdit({ id }) }, 'Schuhe wählen'))) : null;
-      const plan = st.days.map((list2, i) => dayCard(i, t.startDate, list2, { showShoes: true, onOpen: out => openOutfitDetail(out.id), addLabel: list2.length ? null : 'Outfit fehlt – tippen zum Wählen', onAdd: () => openTripEdit({ id }) }));
+      const plan = st.days.map((list2, i) => dayCard(i, t.startDate, list2, { showShoes: true, onOpen: (out, layers) => openOutfitDetail(out.id, layers), addLabel: list2.length ? null : 'Outfit fehlt – tippen zum Wählen', onAdd: () => openTripEdit({ id }) }));
+      const planView = S.settings.planView === 'list' ? 'list' : 'photos';
+      const planToggle = h('div', { class: 'seg compact', role: 'group', 'aria-label': 'Darstellung des Tagesplans', style: 'margin:4px 0 12px' },
+        [['photos', 'Fotos'], ['list', 'Liste']].map(([k, lab]) => h('button', { type: 'button', 'aria-pressed': String(planView === k), onclick: () => { if (planView !== k) { S.settings.planView = k; saveSettings(); draw(); } } }, lab)));
+      const planTile = (i, en) => {
+        const out = en.o, chosen = (en.layers || []).filter(Boolean), pv = photoLayer(en.layers || []);
+        const lab = chosen.map(l => layerLabel(out, l)).join(' + ');
+        return h('button', { class: 'ptile2', type: 'button', 'aria-label': 'Tag ' + (i + 1) + ': ' + out.name + (lab ? ', ' + lab : ''), onclick: () => openOutfitDetail(out.id, en.layers) },
+          h('span', { class: 'pcover' }, pv && pv.thumb ? h('img', { src: pv.thumb, alt: '', class: 'photo' }) : outfitCover(out)),
+          h('b', null, out.name),
+          lab ? h('small', null, lab) : null,
+          h('small', { class: 'shoeline' + (en.shoe ? '' : ' warn') }, en.shoe ? 'Schuhe: ' + en.shoe.name : 'Noch keine Schuhe gewählt'));
+      };
+      const photoPlan = st.days.map((list2, i) => h('div', { class: 'daygroup', role: 'group', 'aria-label': 'Tag ' + (i + 1) },
+        h('div', { class: 'dayhead' }, h('b', null, 'Tag ' + (i + 1)), t.startDate ? h('span', null, fmtShort(addDaysKey(t.startDate, i))) : null),
+        list2.length ? h('div', { class: 'photogrid' }, list2.map(en => planTile(i, en)))
+          : h('button', { class: 'addbtn', type: 'button', onclick: () => openTripEdit({ id }) }, icon('plus', 18), 'Outfit fehlt – tippen zum Wählen')));
       const range = tripRange(t);
       root.append(
         shead(t.name, backBtn(ctl), textBtn('Bearbeiten', () => openTripEdit({ id }), true)),
@@ -2036,10 +2147,11 @@ function openTripDetail(id) {
           h('h1', { class: 'h1' }, t.name),
           h('p', { class: 'meta' }, (range ? range + ' · ' : '') + dayWord(st.n) + ' · ' + partWord(st.pieces) + ' einpacken'),
           openNote, shoeNote,
-          h('div', { class: 'sec' }, h('span', null, 'Packliste'), prog),
-          list, noItemsNote, resetBtn,
-          h('div', { class: 'sec' }, h('span', null, 'Tagesplan')),
-          h('div', null, plan)));
+          h('div', { class: 'tabbar' }, h('div', { class: 'seg', role: 'tablist', 'aria-label': 'Ansicht der Reise' },
+            [['pack', 'Packliste'], ['plan', 'Tagesplan']].map(([k, lab]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === k), onclick: () => { if (tab !== k) { tab = k; draw(); root.scrollTop = 0; } } }, lab)))),
+          tab === 'pack'
+            ? h('div', { role: 'tabpanel', 'aria-label': 'Packliste' }, h('div', { class: 'sec', style: 'margin-top:8px' }, h('span', null, 'Zu packen'), prog), list, noItemsNote, resetBtn)
+            : h('div', { role: 'tabpanel', 'aria-label': 'Tagesplan' }, planToggle, planView === 'list' ? h('div', null, plan) : h('div', null, photoPlan))));
       updateProg();
     };
     ctl.render = draw; draw();
@@ -2048,52 +2160,70 @@ function openTripDetail(id) {
 
 function openTripDayPicker(o) {
   let q = '', tags = [], onlyUsed = false, view = null;
+  let mode = S.settings.galleryMode === 'swipe' ? 'swipe' : 'grid';   // gleiche Wahl wie im Tab „Outfits“
   const usedSet = new Set((o.usedIds || []).filter(id => getOutfit(id)));
-  // Auswahl: je Outfit höchstens ein Eintrag { o, l } (l = Variante von Zusatzschicht 1 oder null)
-  const sel = (o.selected || []).filter(e => getOutfit(e.o)).map(e => ({ o: e.o, l: findLayer(getOutfit(e.o), e.l, 0) ? e.l : null }));
-  const hasT0 = S.outfits.some(x => (x.layers || []).some(l => l.tier === 0));
+  // Auswahl: je Outfit höchstens ein Eintrag { o, l, l2 } (Variante von Zusatzschicht 1 und 2 oder null)
+  const sel = (o.selected || []).filter(e => getOutfit(e.o)).map(e => { const ou = getOutfit(e.o); return { o: e.o, l: findLayer(ou, e.l, 0) ? e.l : null, l2: findLayer(ou, e.l2, 1) ? e.l2 : null }; });
+  const hasLayers = S.outfits.some(x => (x.layers || []).length);
   const baseSet = new Set((o.baseline || []).filter(id => getItem(id) && !getItem(id).basic));   // Teile, die an anderen Tagen schon gepackt werden (Basics zählen nicht)
   openSheet((root, ctl) => {
     const host = h('div'), chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Nach Tags filtern' }), counter = h('span', { 'aria-live': 'polite' });
     const fill = h('input', { type: 'checkbox', id: 'fill-rest' });
     const seg = h('div', { class: 'seg compact', role: 'group', 'aria-label': 'Zusatzschicht anzeigen' });
+    const modeToggle = h('div', { class: 'iconseg', role: 'group', 'aria-label': 'Darstellung der Outfits' });
     const find = id => sel.findIndex(e => e.o === id);
-    const draw = () => {
+    const draw = keep => {
+      const old = host.querySelector('.swipe'), keepLeft = keep && old ? old.scrollLeft : 0;
       clear(host);
+      const field = view === 1 ? 'l2' : 'l';
       const { entries: rawEntries, hidden } = galleryEntries(view, q, tags, x => !onlyUsed || usedSet.has(x.id));
       // Je mehr Teile schon an anderen Tagen der Reise vorkommen, desto weiter oben; bei Gleichstand zuerst das mit weniger neuen Teilen
       const scored = rawEntries.map((en, idx) => { const ids = entryItems(en.o, [en.layer || null]); return { en, idx, have: ids.filter(x => baseSet.has(x)).length, m: ids.length }; });
       if (baseSet.size) scored.sort((a, b) => b.have - a.have || (a.m - a.have) - (b.m - b.have) || a.idx - b.idx);
-      const entries = scored.map(x => x.en);
-      if (!entries.length) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:30px' }, 'Kein Outfit gefunden.'));
-      else host.append(h('div', { class: 'grid wrapsub' }, scored.map(sc => {
-        const en = sc.en;
-        const k = find(en.o.id), cur = k >= 0 ? sel[k] : null;
-        const isSel = en.layer ? !!cur && cur.l === en.layer.id : !!cur;
-        const vid = en.layer ? en.layer.id : (cur ? cur.l : null);
-        const cost = o.cost ? o.cost(en.o.id, vid) : '';
-        const curLayer = cur && cur.l ? findLayer(en.o, cur.l, 0) : null;
-        const overlap = sc.have > 0 ? sc.have + ' von ' + sc.m + ' Teilen schon dabei' : '';
-        const sub = en.layer ? [layerLabel(en.o, en.layer), overlap, cost].filter(Boolean).join(' · ')
-          : [overlap, cost, curLayer ? layerLabel(en.o, curLayer) : en.o.tags.join(', ')].filter(Boolean).join(' · ');
-        const tap = () => {
-          const kk = find(en.o.id);
-          if (en.layer) { if (kk >= 0 && sel[kk].l === en.layer.id) sel.splice(kk, 1); else if (kk >= 0) sel[kk] = { o: en.o.id, l: en.layer.id }; else sel.push({ o: en.o.id, l: en.layer.id }); }
-          else if (kk >= 0) sel.splice(kk, 1); else sel.push({ o: en.o.id, l: null });
-          draw();
-        };
-        return outfitCard(en.o, tap, isSel, en.layer, sub);
-      })));
-      if (hidden) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:16px', role: 'status' }, hidden + (hidden === 1 ? ' Outfit' : ' Outfits') + ' ohne Zusatzschicht 1 ausgeblendet'));
+      if (!scored.length) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:30px' }, 'Kein Outfit gefunden.'));
+      else {
+        const items = scored.map(sc => {
+          const en = sc.en, k = find(en.o.id), cur = k >= 0 ? sel[k] : null;
+          const isSel = en.layer ? !!cur && cur[field] === en.layer.id : !!cur;
+          const eL = en.layer && view === 0 ? en.layer.id : (cur ? cur.l : null), eL2 = en.layer && view === 1 ? en.layer.id : (cur ? cur.l2 : null);
+          const cost = o.cost ? o.cost(en.o.id, eL, eL2) : '';
+          const chosen = cur ? [findLayer(en.o, cur.l, 0), findLayer(en.o, cur.l2, 1)].filter(Boolean) : [];
+          const overlap = sc.have > 0 ? sc.have + ' von ' + sc.m + ' Teilen schon dabei' : '';
+          const sub = en.layer ? [layerLabel(en.o, en.layer), overlap, cost].filter(Boolean).join(' · ')
+            : [overlap, cost, chosen.length ? chosen.map(l => layerLabel(en.o, l)).join(' + ') : en.o.tags.join(', ')].filter(Boolean).join(' · ');
+          const tap = () => {
+            const kk = find(en.o.id);
+            if (view === null) { if (kk >= 0) sel.splice(kk, 1); else sel.push({ o: en.o.id, l: null, l2: null }); }
+            else {
+              const vid = en.layer.id;
+              if (kk >= 0 && sel[kk][field] === vid) sel.splice(kk, 1);
+              else if (kk >= 0) sel[kk] = Object.assign({}, sel[kk], { [field]: vid });
+              else sel.push({ o: en.o.id, l: view === 0 ? vid : null, l2: view === 1 ? vid : null });
+            }
+            draw(true);
+          };
+          return { en, isSel, sub, tap };
+        });
+        if (mode === 'swipe') {
+          const [sw, ct] = makeSwipe(items.map(it => outfitSwipeCard(it.en.o, it.en.layer, { onClick: it.tap, selected: it.isSel, sub: it.sub })));
+          host.append(sw, ct);
+          if (keepLeft) { sw.scrollLeft = keepLeft; sw._sync(); }
+        } else host.append(h('div', { class: 'grid wrapsub' }, items.map(it => outfitCard(it.en.o, it.tap, it.isSel, it.en.layer, it.sub))));
+      }
+      if (hidden) host.append(h('p', { class: 'meta', style: 'text-align:center;margin-top:16px', role: 'status' }, hidden + (hidden === 1 ? ' Outfit' : ' Outfits') + ' ohne Zusatzschicht ' + (view + 1) + ' ausgeblendet'));
       counter.textContent = sel.length === 0 ? 'Kein Outfit gewählt' : sel.length + (sel.length === 1 ? ' Outfit gewählt' : ' Outfits gewählt');
     };
     const drawSeg = () => {
       clear(seg);
-      [['Ohne', null], ['Zusatzschicht 1', 0]].forEach(([lab, v]) => seg.append(h('button', { type: 'button', 'aria-pressed': String(view === v), onclick: () => { view = v; drawSeg(); draw(); } }, lab)));
+      [['Ohne', null], ['Zusatzschicht 1', 0], ['Zusatzschicht 2', 1]].forEach(([lab, v]) => seg.append(h('button', { type: 'button', 'aria-pressed': String(view === v), onclick: () => { view = v; tags = tags.filter(t => allTagsFor(view).includes(t)); drawSeg(); drawChips(); draw(); } }, lab)));
+    };
+    const drawMode = () => {
+      clear(modeToggle);
+      [['grid', 'Raster', 'grid'], ['swipe', 'Einzeln wischen', 'swipe']].forEach(([m, lab, ic]) => modeToggle.append(h('button', { type: 'button', 'aria-pressed': String(mode === m), 'aria-label': lab, onclick: () => { mode = m; S.settings.galleryMode = m; saveSettings(); drawMode(); draw(); } }, icon(ic, 20))));
     };
     const drawChips = () => {
       clear(chips);
-      const all = allTags();
+      const all = allTagsFor(view);
       if (!all.length && !usedSet.size) { chips.style.display = 'none'; return; }
       chips.style.display = '';
       chips.append(chipBtn('Alle', !tags.length && !onlyUsed, () => { tags = []; onlyUsed = false; drawChips(); draw(); }));
@@ -2102,12 +2232,14 @@ function openTripDayPicker(o) {
     };
     const fillRow = o.laterEmpty ? h('label', { class: 'checkrow', for: 'fill-rest' }, fill, h('span', null, 'Auswahl auch für alle folgenden leeren Tage übernehmen (' + o.laterEmpty + ')')) : null;
     root.append(
-      shead('Tag ' + (o.day + 1), textBtn('Abbrechen', () => ctl.close()), textBtn('Fertig', () => { o.onDone(sel.map(e => ({ o: e.o, l: e.l })), !!fill.checked); ctl.close(); }, true)),
+      shead('Tag ' + (o.day + 1), textBtn('Abbrechen', () => ctl.close()), textBtn('Fertig', () => { o.onDone(sel.map(e => ({ o: e.o, l: e.l, l2: e.l2 })), !!fill.checked); ctl.close(); }, true)),
       h('div', { class: 'sbody' }, ...[
-        h('p', { class: 'meta', style: 'margin:0 0 12px' }, 'Wähle ein oder mehrere Outfits für diesen Tag' + (o.startDate ? ' (' + fmtShort(addDaysKey(o.startDate, o.day)) + ')' : '') + '.' + (hasT0 ? ' Unter „Zusatzschicht 1“ wählst du gleich die Variante dazu.' : '')),
-        fillRow, searchBox('', 'Outfits durchsuchen', v => { q = v; draw(); }), hasT0 ? seg : null, chips, host].filter(Boolean)),
-      h('div', { class: 'sfoot' }, h('div', { class: 'inner', style: 'text-align:center;color:var(--muted)' }, counter)));
-    drawSeg(); drawChips(); draw();
+        h('div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px' },
+          h('p', { class: 'meta', style: 'margin:0;flex:1' }, 'Wähle ein oder mehrere Outfits für diesen Tag' + (o.startDate ? ' (' + fmtShort(addDaysKey(o.startDate, o.day)) + ')' : '') + '.' + (hasLayers ? ' Unter „Zusatzschicht 1“ und „Zusatzschicht 2“ wählst du gleich die Variante dazu.' : '')),
+          modeToggle),
+        searchBox('', 'Outfits durchsuchen', v => { q = v; draw(); }), hasLayers ? seg : null, chips, host].filter(Boolean)),
+      h('div', { class: 'sfoot' }, h('div', { class: 'inner', style: 'color:var(--muted)' }, ...[fillRow, h('div', { style: 'text-align:center' }, counter)].filter(Boolean))));
+    drawSeg(); drawMode(); drawChips(); draw();
   }, { label: 'Outfits für den Tag wählen' });
 }
 
@@ -2247,16 +2379,17 @@ function openTripEdit(opts) {
       const usedElsewhere = new Set();
       for (let j = 0; j < draft.n; j++) if (j !== i) (draft.byDate[keyOf(j)] || []).forEach(e => { if (getOutfit(e.o)) usedElsewhere.add(e.o); });
       // Wirkung eines Outfits (mit Variante von Zusatzschicht 1) auf die Zahl der Stücke, gegenüber dem Tag ohne dieses Outfit
-      const cost = (outId, vid) => {
+      const cost = (outId, l, l2) => {
+        const curE = (draft.byDate[keyOf(i)] || []).find(e => e.o === outId);
         const base = daysNow().map((d, di) => di === i ? d.filter(e => e.o !== outId) : d);
-        const withIt = base.map((d, di) => di === i ? d.concat({ o: outId, l: vid || null, l2: null, s: null }) : d);
+        const withIt = base.map((d, di) => di === i ? d.concat({ o: outId, l: l || null, l2: l2 || null, s: curE ? curE.s : null }) : d);
         const diff = tripStats({ days: withIt, packed: {}, qty: {} }).pieces - tripStats({ days: base, packed: {}, qty: {} }).pieces;
         return diff > 0 ? '+' + partWord(diff) : 'schon dabei';
       };
       const stOthers = tripStats({ days: daysNow().map((d, di) => di === i ? [] : d), packed: {}, qty: {} });
-      openTripDayPicker({ day: i, startDate: draft.startDate, usedIds: Array.from(usedElsewhere), baseline: Array.from(stOthers.need.keys()), selected: (draft.byDate[keyOf(i)] || []).map(e => ({ o: e.o, l: e.l })), cost, laterEmpty: later, onDone: (picked, fillRest) => {
+      openTripDayPicker({ day: i, startDate: draft.startDate, usedIds: Array.from(usedElsewhere), baseline: Array.from(stOthers.need.keys()), selected: (draft.byDate[keyOf(i)] || []).map(e => ({ o: e.o, l: e.l, l2: e.l2 })), cost, laterEmpty: later, onDone: (picked, fillRest) => {
         const cur = draft.byDate[keyOf(i)] || [];
-        const entries = picked.map(pk => { const c = cur.find(e => e.o === pk.o); return { o: pk.o, l: pk.l || null, l2: c ? c.l2 : null, s: c ? c.s : null }; });
+        const entries = picked.map(pk => { const c = cur.find(e => e.o === pk.o); return { o: pk.o, l: pk.l || null, l2: pk.l2 || null, s: c ? c.s : null }; });
         draft.byDate[keyOf(i)] = entries;
         if (entries.length && fillRest) for (let j = i + 1; j < draft.n; j++) if (!(draft.byDate[keyOf(j)] || []).length) draft.byDate[keyOf(j)] = entries.map(e => ({ o: e.o, l: e.l || null, l2: e.l2 || null, s: e.s || null }));
         drawDays();
@@ -2344,7 +2477,7 @@ const normTrip = t => {
 const normOutfit = o => {
   const r = Object.assign({ name: 'Outfit', tags: [], itemIds: [], createdAt: Date.now(), thumb: null, hasPhoto: false, layers: [], tierNames: ['', ''], shoeIds: [] }, o);
   r.shoeIds = Array.isArray(r.shoeIds) ? Array.from(new Set(r.shoeIds.filter(x => typeof x === 'string' && x))) : [];
-  r.layers = (Array.isArray(r.layers) ? r.layers : []).filter(l => l && l.id).map(l => Object.assign({ name: '', itemIds: [], hasPhoto: false, thumb: null }, l, { tier: l.tier === 1 ? 1 : 0 }));
+  r.layers = (Array.isArray(r.layers) ? r.layers : []).filter(l => l && l.id).map(l => Object.assign({ name: '', itemIds: [], hasPhoto: false, thumb: null }, l, { tier: l.tier === 1 ? 1 : 0, tags: Array.isArray(l.tags) ? l.tags.filter(x => typeof x === 'string' && x) : [] }));
   const tn = Array.isArray(r.tierNames) ? r.tierNames : [];
   r.tierNames = [String(tn[0] || ''), String(tn[1] || '')];
   return r;
